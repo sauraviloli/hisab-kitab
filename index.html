@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hisab-Kitab — Business Cash Tracker</title>
+  <meta name="description" content="Free bilingual cash tracker for Nepali small businesses. Track income, expenses, generate VAT bills, and get AI insights."/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📒</text></svg>"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #1D9E75;
+      --green-dark: #0F6E56;
+      --green-light: #E1F5EE;
+      --red: #D85A30;
+      --red-light: #FAECE7;
+      --bg: #F7F6F2;
+      --surface: #FFFFFF;
+      --surface2: #F0EEE8;
+      --border: rgba(0,0,0,0.1);
+      --border2: rgba(0,0,0,0.18);
+      --text: #1A1A18;
+      --text2: #6B6A65;
+      --text3: #9B9A95;
+      --radius: 10px;
+      --radius-lg: 14px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111110;
+        --surface: #1C1C1A;
+        --surface2: #252523;
+        --border: rgba(255,255,255,0.1);
+        --border2: rgba(255,255,255,0.18);
+        --text: #F0EEE8;
+        --text2: #9B9A95;
+        --text3: #6B6A65;
+        --green-light: #0a2e1f;
+        --red-light: #2e150a;
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 1rem 1rem 5rem;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 0 1.25rem;
+    }
+    .header-left .app-title { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+    .header-left .app-sub { font-size: 12px; color: var(--text2); margin-top: 1px; }
+    .lang-toggle { display: flex; border-radius: var(--radius); overflow: hidden; border: 0.5px solid var(--border2); }
+    .lang-btn { font-size: 12px; padding: 5px 12px; border: none; background: transparent; color: var(--text2); cursor: pointer; font-family: inherit; }
+    .lang-btn.active { background: var(--surface); color: var(--text); font-weight: 500; }
+
+    /* Bottom nav tabs */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--surface);
+      border-top: 0.5px solid var(--border);
+      display: flex;
+      z-index: 100;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .nav-btn {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      padding: 10px 4px 8px;
+      font-size: 10px; color: var(--text2); cursor: pointer;
+      border: none; background: transparent; font-family: inherit; gap: 3px;
+    }
+    .nav-btn.active { color: var(--green); }
+    .nav-icon { font-size: 18px; line-height: 1; }
+
+    /* Summary cards */
+    .summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 1.25rem; }
+    .metric { background: var(--surface); border-radius: var(--radius); padding: 0.75rem; border: 0.5px solid var(--border); }
+    .metric-label { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+    .metric-value { font-size: 18px; font-weight: 600; letter-spacing: -0.5px; }
+
+    /* Add form */
+    .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1rem; margin-bottom: 1rem; }
+    .type-toggle { display: grid; grid-template-columns: 1fr 1fr; border-radius: var(--radius); overflow: hidden; border: 0.5px solid var(--border2); margin-bottom: 10px; }
+    .type-btn { padding: 9px; font-size: 13px; border: none; cursor: pointer; background: transparent; color: var(--text2); font-family: inherit; font-weight: 500; transition: background 0.15s; }
+    .type-btn.active.in { background: var(--green-light); color: var(--green-dark); }
+    .type-btn.active.out { background: var(--red-light); color: #993C1D; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+    .form-label { font-size: 11px; color: var(--text2); margin-bottom: 3px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+    input, select {
+      width: 100%; padding: 8px 10px; font-size: 14px; font-family: inherit;
+      background: var(--bg); border: 0.5px solid var(--border2);
+      border-radius: var(--radius); color: var(--text); outline: none;
+    }
+    input:focus, select:focus { border-color: var(--green); }
+    .submit-btn {
+      width: 100%; padding: 10px; border-radius: var(--radius); border: none;
+      background: var(--green); color: white; font-size: 14px; font-weight: 600;
+      cursor: pointer; margin-top: 2px; font-family: inherit; transition: background 0.15s;
+    }
+    .submit-btn:hover { background: var(--green-dark); }
+    .submit-btn:active { transform: scale(0.99); }
+
+    /* Filter pills */
+    .filter-row { display: flex; gap: 6px; margin-bottom: 0.875rem; flex-wrap: wrap; }
+    .filter-btn {
+      font-size: 12px; padding: 5px 12px; border-radius: 20px;
+      border: 0.5px solid var(--border2); background: transparent;
+      color: var(--text2); cursor: pointer; font-family: inherit;
+    }
+    .filter-btn.active { background: var(--surface); color: var(--text); font-weight: 500; border-color: var(--border2); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+    /* Section header */
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .section-title { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; }
+    .wa-btn {
+      display: flex; align-items: center; gap: 5px; padding: 5px 10px;
+      border-radius: var(--radius); border: 0.5px solid #25D366;
+      background: transparent; color: #1A9E4E; font-size: 12px; font-weight: 500;
+      cursor: pointer; font-family: inherit;
+    }
+    .wa-btn:hover { background: var(--green-light); }
+
+    /* Entries */
+    .entry-list { display: flex; flex-direction: column; gap: 6px; }
+    .entry {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface); border: 0.5px solid var(--border);
+      border-radius: var(--radius); padding: 0.75rem 0.875rem;
+    }
+    .entry-left { display: flex; align-items: center; gap: 10px; }
+    .entry-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .entry-dot.in { background: var(--green); }
+    .entry-dot.out { background: var(--red); }
+    .entry-desc { font-size: 14px; color: var(--text); }
+    .entry-meta { font-size: 11px; color: var(--text2); margin-top: 1px; }
+    .entry-amount { font-size: 14px; font-weight: 600; }
+    .entry-amount.in { color: var(--green); }
+    .entry-amount.out { color: var(--red); }
+    .entry-delete { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 14px; padding: 0 0 0 8px; }
+    .empty { text-align: center; padding: 2.5rem 1rem; color: var(--text2); font-size: 14px; }
+
+    /* Report */
+    .chart-wrap { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; margin-bottom: 1rem; }
+    .chart-title { font-size: 13px; font-weight: 600; margin-bottom: 0.75rem; }
+    .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 110px; }
+    .bar-col { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 3px; }
+    .bar-stack { display: flex; flex-direction: column; justify-content: flex-end; width: 100%; gap: 2px; flex: 1; }
+    .bar-seg { border-radius: 3px 3px 0 0; min-height: 2px; }
+    .bar-label { font-size: 10px; color: var(--text2); white-space: nowrap; }
+
+    /* VAT */
+    .vat-item-row { display: grid; grid-template-columns: 1fr 90px 28px; gap: 6px; margin-bottom: 6px; align-items: center; }
+    .vat-add-item { font-size: 12px; color: var(--green); cursor: pointer; border: none; background: none; font-family: inherit; padding: 0; margin-bottom: 10px; font-weight: 500; }
+    .bill-preview { background: var(--bg); border-radius: var(--radius); padding: 1rem; font-size: 13px; margin-top: 0.75rem; line-height: 1.85; }
+    .bill-row { display: flex; justify-content: space-between; }
+    .bill-divider { border: none; border-top: 0.5px solid var(--border); margin: 6px 0; }
+    .bill-total { font-weight: 600; font-size: 14px; }
+    .wa-btn-full {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 10px; border-radius: var(--radius);
+      border: 0.5px solid #25D366; background: transparent; color: #1A9E4E;
+      font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; margin-top: 10px;
+    }
+    .wa-btn-full:hover { background: var(--green-light); }
+
+    /* AI */
+    .ai-wrap { display: flex; flex-direction: column; gap: 10px; }
+    .insight-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 0.875rem 1rem; }
+    .insight-icon { font-size: 16px; margin-bottom: 4px; }
+    .insight-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+    .insight-body { font-size: 13px; color: var(--text2); line-height: 1.55; }
+    .ai-ask-box { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; }
+    .ai-ask-title { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+    .ai-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .ai-chip {
+      font-size: 12px; padding: 5px 10px; border-radius: 20px;
+      border: 0.5px solid var(--border2); background: transparent;
+      color: var(--text2); cursor: pointer; font-family: inherit;
+    }
+    .ai-chip:hover { background: var(--surface2); color: var(--text); }
+    .ai-input-row { display: flex; gap: 8px; }
+    .ai-input-row input { flex: 1; }
+    .ai-send {
+      padding: 8px 14px; border-radius: var(--radius); border: none;
+      background: var(--green); color: white; font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: inherit; white-space: nowrap;
+    }
+    .ai-send:disabled { background: var(--surface2); color: var(--text2); cursor: not-allowed; }
+    .ai-messages { display: flex; flex-direction: column; gap: 8px; }
+    .ai-msg { border-radius: var(--radius-lg); padding: 0.875rem 1rem; font-size: 14px; line-height: 1.6; }
+    .ai-msg.assistant { background: var(--surface); border: 0.5px solid var(--border); }
+    .ai-msg.user { background: var(--green-light); color: var(--green-dark); align-self: flex-end; max-width: 85%; }
+    .ai-msg.loading { background: var(--surface); color: var(--text2); font-style: italic; border: 0.5px solid var(--border); }
+    .no-data-note { font-size: 13px; color: var(--text2); text-align: center; padding: 1.5rem 1rem; background: var(--surface); border-radius: var(--radius-lg); border: 0.5px solid var(--border); }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      background: var(--text); color: var(--bg); font-size: 13px;
+      padding: 7px 18px; border-radius: 20px; opacity: 0;
+      transition: opacity 0.25s; pointer-events: none; white-space: nowrap; z-index: 200;
+    }
+    .toast.show { opacity: 1; }
+
+    /* View toggle */
+    .view { display: none; }
+    .view.active { display: block; }
+  </style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="app">
+  <div class="header">
+    <div class="header-left">
+      <div class="app-title" id="title">Hisab-Kitab</div>
+      <div class="app-sub" id="subtitle">Business cash tracker</div>
+    </div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('en')" id="btn-en">EN</button>
+      <button class="lang-btn" onclick="setLang('ne')" id="btn-ne">ने</button>
+    </div>
+  </div>
+
+  <!-- LEDGER -->
+  <div class="view active" id="view-ledger">
+    <div class="summary-grid">
+      <div class="metric"><div class="metric-label" id="lbl-income">Income</div><div class="metric-value" style="color:var(--green)" id="val-income">रू 0</div></div>
+      <div class="metric"><div class="metric-label" id="lbl-expense">Expense</div><div class="metric-value" style="color:var(--red)" id="val-expense">रू 0</div></div>
+      <div class="metric"><div class="metric-label" id="lbl-balance">Balance</div><div class="metric-value" id="val-balance">रू 0</div></div>
+    </div>
+    <div class="card">
+      <div class="type-toggle">
+        <button class="type-btn active in" id="btn-in" onclick="setType('in')">+ <span id="lbl-cashIn">Cash In</span></button>
+        <button class="type-btn out" id="btn-out" onclick="setType('out')">− <span id="lbl-cashOut">Cash Out</span></button>
+      </div>
+      <div class="form-row">
+        <div><div class="form-label" id="lbl-desc">Description</div><input type="text" id="desc" placeholder="e.g. Sale, Rent..."/></div>
+        <div><div class="form-label" id="lbl-amount">Amount (रू)</div><input type="number" id="amount" placeholder="0" min="0"/></div>
+      </div>
+      <div class="form-row">
+        <div><div class="form-label" id="lbl-category">Category</div>
+          <select id="category">
+            <option value="Sales">Sales / बिक्री</option>
+            <option value="Purchase">Purchase / खरिद</option>
+            <option value="Salary">Salary / तलब</option>
+            <option value="Rent">Rent / भाडा</option>
+            <option value="Utilities">Utilities / उपयोगिता</option>
+            <option value="Other">Other / अन्य</option>
+          </select>
+        </div>
+        <div><div class="form-label" id="lbl-date">Date</div><input type="date" id="date"/></div>
+      </div>
+      <button class="submit-btn" onclick="addEntry()" id="add-btn">+ Add Entry</button>
+    </div>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="setFilter('today')" id="f-today">Today</button>
+      <button class="filter-btn" onclick="setFilter('week')" id="f-week">This Week</button>
+      <button class="filter-btn" onclick="setFilter('month')" id="f-month">This Month</button>
+      <button class="filter-btn" onclick="setFilter('all')" id="f-all">All</button>
+    </div>
+    <div class="section-header">
+      <div class="section-title" id="lbl-history">Entries</div>
+      <button class="wa-btn" onclick="shareWhatsApp()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        <span id="lbl-share">Share</span>
+      </button>
+    </div>
+    <div class="entry-list" id="entries"></div>
+  </div>
+
+  <!-- REPORT -->
+  <div class="view" id="view-report">
+    <div class="chart-wrap">
+      <div class="chart-title" id="chart-title">Last 7 Days — Income vs Expense</div>
+      <div class="bar-chart" id="bar-chart"></div>
+      <div style="display:flex;gap:16px;margin-top:8px;">
+        <span style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:var(--green);display:inline-block;"></span>Income</span>
+        <span style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:var(--red);display:inline-block;"></span>Expense</span>
+      </div>
+    </div>
+    <div class="summary-grid">
+      <div class="metric"><div class="metric-label" id="r-lbl-income">Total Income</div><div class="metric-value" style="color:var(--green)" id="r-val-income">रू 0</div></div>
+      <div class="metric"><div class="metric-label" id="r-lbl-expense">Total Expense</div><div class="metric-value" style="color:var(--red)" id="r-val-expense">रू 0</div></div>
+      <div class="metric"><div class="metric-label" id="r-lbl-balance">Net Balance</div><div class="metric-value" id="r-val-balance">रू 0</div></div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-title" id="cat-title">Top Expense Categories</div>
+      <div id="cat-chart"></div>
+    </div>
+  </div>
+
+  <!-- VAT -->
+  <div class="view" id="view-vat">
+    <div class="card">
+      <div class="form-row">
+        <div><div class="form-label" id="vat-lbl-biz">Business Name</div><input type="text" id="vat-biz" placeholder="Your Shop Name"/></div>
+        <div><div class="form-label" id="vat-lbl-pan">PAN No.</div><input type="text" id="vat-pan" placeholder="123456789"/></div>
+      </div>
+      <div class="form-row">
+        <div><div class="form-label" id="vat-lbl-buyer">Buyer Name</div><input type="text" id="vat-buyer" placeholder="Customer"/></div>
+        <div><div class="form-label" id="vat-lbl-bdate">Bill Date</div><input type="date" id="vat-date"/></div>
+      </div>
+      <div class="form-label" style="margin-bottom:6px;" id="vat-lbl-items">Items</div>
+      <div id="vat-items"></div>
+      <button class="vat-add-item" onclick="addVatItem()" id="vat-add-item-btn">+ Add item</button>
+      <div class="bill-preview" id="bill-preview"></div>
+      <button class="wa-btn-full" onclick="shareVatWhatsApp()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        <span id="vat-share-btn">Send Bill via WhatsApp</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- AI -->
+  <div class="view" id="view-ai">
+    <div class="ai-wrap">
+      <div id="auto-insights"></div>
+      <div class="ai-ask-box">
+        <div class="ai-ask-title" id="ai-ask-title">Ask your business advisor</div>
+        <div class="ai-chips" id="ai-chips"></div>
+        <div class="ai-input-row">
+          <input type="text" id="ai-input" placeholder="Ask anything about your business..."/>
+          <button class="ai-send" id="ai-send-btn" onclick="askAI()">Ask ↗</button>
+        </div>
+      </div>
+      <div class="ai-messages" id="ai-messages"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="setTab('ledger')" id="nav-ledger">
+    <span class="nav-icon">📒</span><span id="nav-lbl-ledger">Ledger</span>
+  </button>
+  <button class="nav-btn" onclick="setTab('report')" id="nav-report">
+    <span class="nav-icon">📊</span><span id="nav-lbl-report">Report</span>
+  </button>
+  <button class="nav-btn" onclick="setTab('vat')" id="nav-vat">
+    <span class="nav-icon">🧾</span><span id="nav-lbl-vat">VAT Bill</span>
+  </button>
+  <button class="nav-btn" onclick="setTab('ai')" id="nav-ai">
+    <span class="nav-icon">✦</span><span id="nav-lbl-ai">AI Advisor</span>
+  </button>
+</nav>
+
+<script>
+// ============================================
+// 👇 PASTE YOUR GEMINI API KEY HERE
+// Get it free at: aistudio.google.com → "Get API key"
+const GEMINI_KEY = 'AIzaSyDaNQ0czxpq7A_ZjGQMtw_5LRc7ue1vwg8';
+// ============================================
+
+const T = {
+  en: {
+    title:'Hisab-Kitab', subtitle:'Business cash tracker',
+    income:'Income', expense:'Expense', balance:'Balance',
+    cashIn:'Cash In', cashOut:'Cash Out',
+    desc:'Description', amount:'Amount (रू)', category:'Category', date:'Date',
+    addBtn:'+ Add Entry', history:'Entries', share:'Share',
+    empty:'No entries yet. Add your first transaction above.',
+    descPlaceholder:'e.g. Sale, Rent...',
+    today:'Today', week:'This Week', month:'This Month', all:'All',
+    saved:'Entry saved!', deleted:'Entry deleted',
+    tabLedger:'Ledger', tabReport:'Report', tabVat:'VAT Bill', tabAi:'AI Advisor',
+    chartTitle:'Last 7 Days — Income vs Expense', catTitle:'Top Expense Categories',
+    vatBiz:'Business Name', vatPan:'PAN No.', vatBuyer:'Buyer Name', vatDate:'Bill Date',
+    vatItems:'Items', vatAddItem:'+ Add item', vatShare:'Send Bill via WhatsApp',
+    rIncome:'Total Income', rExpense:'Total Expense', rBalance:'Net Balance',
+    aiAskTitle:'Ask your business advisor',
+    chips:['How is my business doing?','Where am I spending most?','How can I save money?','Am I profitable this month?']
+  },
+  ne: {
+    title:'हिसाब-किताब', subtitle:'व्यापारको नगद ट्र्याकर',
+    income:'आम्दानी', expense:'खर्च', balance:'मौज्दात',
+    cashIn:'पैसा आयो', cashOut:'पैसा गयो',
+    desc:'विवरण', amount:'रकम (रू)', category:'श्रेणी', date:'मिति',
+    addBtn:'+ थप्नुहोस्', history:'लेनदेन', share:'पठाउनुहोस्',
+    empty:'अहिलेसम्म कुनै लेनदेन छैन।',
+    descPlaceholder:'जस्तै: बिक्री, भाडा...',
+    today:'आज', week:'यो हप्ता', month:'यो महिना', all:'सबै',
+    saved:'सेभ भयो!', deleted:'मेटियो',
+    tabLedger:'हिसाब', tabReport:'रिपोर्ट', tabVat:'VAT बिल', tabAi:'AI सल्लाह',
+    chartTitle:'७ दिनको आम्दानी/खर्च', catTitle:'खर्चका मुख्य श्रेणी',
+    vatBiz:'व्यवसायको नाम', vatPan:'PAN नं.', vatBuyer:'खरिदकर्ता', vatDate:'मिति',
+    vatItems:'सामानहरू', vatAddItem:'+ सामान थप्नुहोस्', vatShare:'WhatsApp मा बिल पठाउनुहोस्',
+    rIncome:'कुल आम्दानी', rExpense:'कुल खर्च', rBalance:'खुद मौज्दात',
+    aiAskTitle:'आफ्नो व्यापार सल्लाहकारलाई सोध्नुहोस्',
+    chips:['मेरो व्यापार कस्तो छ?','म सबैभन्दा बढी कहाँ खर्च गर्दैछु?','पैसा कसरी बचाउने?','यो महिना नाफामा छु?']
+  }
+};
+
+let lang = 'en', type = 'in', filter = 'today', activeTab = 'ledger';
+let entries = [], vatItems = [], aiHistory = [];
+
+function loadEntries() { try { entries = JSON.parse(localStorage.getItem('hk_entries') || '[]'); } catch(e) { entries = []; } }
+function saveEntries() { try { localStorage.setItem('hk_entries', JSON.stringify(entries)); } catch(e) {} }
+function fmt(n) { return 'रू ' + Math.round(n).toLocaleString('en-IN'); }
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+
+function getFilteredEntries() {
+  const now = new Date();
+  return entries.filter(e => {
+    if (filter === 'today') return e.date === todayStr();
+    if (filter === 'week') { const d = new Date(e.date); return (now - d) / 86400000 >= 0 && (now - d) / 86400000 < 7; }
+    if (filter === 'month') { const d = new Date(e.date); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); }
+    return true;
+  });
+}
+
+function setTab(t) {
+  activeTab = t;
+  ['ledger','report','vat','ai'].forEach(k => {
+    document.getElementById('view-' + k).classList.toggle('active', k === t);
+    document.getElementById('nav-' + k).classList.toggle('active', k === t);
+  });
+  if (t === 'report') renderReport();
+  if (t === 'ai') { renderAutoInsights(); renderChips(); }
+}
+
+function setLang(l) {
+  lang = l;
+  document.getElementById('btn-en').classList.toggle('active', l === 'en');
+  document.getElementById('btn-ne').classList.toggle('active', l === 'ne');
+  const s = T[l];
+  const ids = {
+    'title':s.title,'subtitle':s.subtitle,'lbl-income':s.income,'lbl-expense':s.expense,'lbl-balance':s.balance,
+    'lbl-cashIn':s.cashIn,'lbl-cashOut':s.cashOut,'lbl-desc':s.desc,'lbl-amount':s.amount,
+    'lbl-category':s.category,'lbl-date':s.date,'add-btn':s.addBtn,'lbl-share':s.share,
+    'r-lbl-income':s.rIncome,'r-lbl-expense':s.rExpense,'r-lbl-balance':s.rBalance,
+    'chart-title':s.chartTitle,'cat-title':s.catTitle,
+    'vat-lbl-biz':s.vatBiz,'vat-lbl-pan':s.vatPan,'vat-lbl-buyer':s.vatBuyer,'vat-lbl-bdate':s.vatDate,
+    'vat-lbl-items':s.vatItems,'vat-add-item-btn':s.vatAddItem,'vat-share-btn':s.vatShare,
+    'ai-ask-title':s.aiAskTitle,
+    'nav-lbl-ledger':s.tabLedger,'nav-lbl-report':s.tabReport,'nav-lbl-vat':s.tabVat,'nav-lbl-ai':s.tabAi
+  };
+  Object.entries(ids).forEach(([id, val]) => { const el = document.getElementById(id); if (el) el.textContent = val; });
+  document.getElementById('desc').placeholder = s.descPlaceholder;
+  updateFilterLabels(); renderEntries();
+  if (activeTab === 'report') renderReport();
+  if (activeTab === 'ai') { renderAutoInsights(); renderChips(); }
+}
+
+function setFilter(f) {
+  filter = f;
+  ['today','week','month','all'].forEach(k => document.getElementById('f-' + k).classList.toggle('active', k === f));
+  updateSummary(); renderEntries(); updateFilterLabels();
+}
+
+function updateFilterLabels() {
+  const s = T[lang];
+  document.getElementById('f-today').textContent = s.today;
+  document.getElementById('f-week').textContent = s.week;
+  document.getElementById('f-month').textContent = s.month;
+  document.getElementById('f-all').textContent = s.all;
+  const labels = { today: s.today, week: s.week, month: s.month, all: s.all };
+  document.getElementById('lbl-history').textContent = s.history + ' · ' + labels[filter];
+}
+
+function setType(tp) {
+  type = tp;
+  document.getElementById('btn-in').className = 'type-btn' + (tp === 'in' ? ' active in' : '');
+  document.getElementById('btn-out').className = 'type-btn' + (tp === 'out' ? ' active out' : '');
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+function addEntry() {
+  const desc = document.getElementById('desc').value.trim();
+  const amount = parseFloat(document.getElementById('amount').value);
+  const category = document.getElementById('category').value;
+  const date = document.getElementById('date').value || todayStr();
+  if (!desc || !amount || amount <= 0) return;
+  entries.unshift({ id: Date.now(), desc, amount, type, category, date });
+  saveEntries();
+  document.getElementById('desc').value = '';
+  document.getElementById('amount').value = '';
+  updateSummary(); renderEntries(); showToast(T[lang].saved);
+}
+
+function deleteEntry(id) {
+  entries = entries.filter(e => e.id !== id);
+  saveEntries(); updateSummary(); renderEntries(); showToast(T[lang].deleted);
+}
+
+function updateSummary() {
+  const f = getFilteredEntries();
+  const income = f.filter(e => e.type === 'in').reduce((s, e) => s + e.amount, 0);
+  const expense = f.filter(e => e.type === 'out').reduce((s, e) => s + e.amount, 0);
+  document.getElementById('val-income').textContent = fmt(income);
+  document.getElementById('val-expense').textContent = fmt(expense);
+  const bal = income - expense;
+  const el = document.getElementById('val-balance');
+  el.textContent = fmt(Math.abs(bal));
+  el.style.color = bal >= 0 ? 'var(--green)' : 'var(--red)';
+}
+
+function renderEntries() {
+  const el = document.getElementById('entries');
+  const filtered = getFilteredEntries();
+  if (filtered.length === 0) { el.innerHTML = '<div class="empty">' + T[lang].empty + '</div>'; return; }
+  el.innerHTML = filtered.map(e => `
+    <div class="entry">
+      <div class="entry-left">
+        <div class="entry-dot ${e.type}"></div>
+        <div>
+          <div class="entry-desc">${e.desc}</div>
+          <div class="entry-meta">${e.category} · ${e.date}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <span class="entry-amount ${e.type}">${e.type === 'in' ? '+' : '−'}${fmt(e.amount)}</span>
+        <button class="entry-delete" onclick="deleteEntry(${e.id})">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderReport() {
+  const now = new Date();
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now); d.setDate(now.getDate() - i);
+    const ds = d.toISOString().split('T')[0];
+    const label = d.toLocaleDateString('en-IN', { weekday: 'short' }).slice(0, 2);
+    const inc = entries.filter(e => e.date === ds && e.type === 'in').reduce((s, e) => s + e.amount, 0);
+    const exp = entries.filter(e => e.date === ds && e.type === 'out').reduce((s, e) => s + e.amount, 0);
+    days.push({ label, inc, exp });
+  }
+  const maxVal = Math.max(...days.map(d => Math.max(d.inc, d.exp)), 1);
+  document.getElementById('bar-chart').innerHTML = days.map(d => {
+    const ih = Math.round((d.inc / maxVal) * 100);
+    const eh = Math.round((d.exp / maxVal) * 100);
+    return `<div class="bar-col"><div class="bar-stack">
+      ${d.inc > 0 ? `<div class="bar-seg" style="height:${ih}%;background:var(--green);"></div>` : ''}
+      ${d.exp > 0 ? `<div class="bar-seg" style="height:${eh}%;background:var(--red);"></div>` : ''}
+      ${d.inc === 0 && d.exp === 0 ? `<div class="bar-seg" style="height:4px;background:var(--border);"></div>` : ''}
+    </div><div class="bar-label">${d.label}</div></div>`;
+  }).join('');
+  const ai = entries.reduce((s, e) => e.type === 'in' ? s + e.amount : s, 0);
+  const ae = entries.reduce((s, e) => e.type === 'out' ? s + e.amount : s, 0);
+  document.getElementById('r-val-income').textContent = fmt(ai);
+  document.getElementById('r-val-expense').textContent = fmt(ae);
+  const rb = ai - ae;
+  const rbEl = document.getElementById('r-val-balance');
+  rbEl.textContent = fmt(Math.abs(rb));
+  rbEl.style.color = rb >= 0 ? 'var(--green)' : 'var(--red)';
+  const catTotals = {};
+  entries.filter(e => e.type === 'out').forEach(e => { catTotals[e.category] = (catTotals[e.category] || 0) + e.amount; });
+  const cats = Object.entries(catTotals).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const maxCat = Math.max(...cats.map(c => c[1]), 1);
+  document.getElementById('cat-chart').innerHTML = cats.length === 0
+    ? '<div style="padding:1rem;color:var(--text2);font-size:13px;">No expense data yet.</div>'
+    : cats.map(([cat, val]) => `
+    <div style="margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:3px;"><span>${cat}</span><span>${fmt(val)}</span></div>
+      <div style="height:6px;background:var(--surface2);border-radius:3px;">
+        <div style="height:100%;width:${Math.round((val / maxCat) * 100)}%;background:var(--red);border-radius:3px;"></div>
+      </div>
+    </div>`).join('');
+}
+
+// VAT
+function addVatItem() { const id = Date.now(); vatItems.push({ id, name: '', rate: 0 }); renderVatItems(); }
+function removeVatItem(id) { vatItems = vatItems.filter(i => i.id !== id); renderVatItems(); updateBillPreview(); }
+function updateVatItem(id, field, val) {
+  const item = vatItems.find(i => i.id === id);
+  if (item) item[field] = field === 'name' ? val : parseFloat(val) || 0;
+  updateBillPreview();
+}
+function renderVatItems() {
+  document.getElementById('vat-items').innerHTML = vatItems.map(item => `
+    <div class="vat-item-row">
+      <input type="text" placeholder="Item name" value="${item.name}" oninput="updateVatItem(${item.id},'name',this.value)" style="font-size:13px;"/>
+      <input type="number" placeholder="रू Rate" value="${item.rate || ''}" oninput="updateVatItem(${item.id},'rate',this.value)" style="font-size:13px;"/>
+      <button onclick="removeVatItem(${item.id})" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:14px;">✕</button>
+    </div>`).join('');
+}
+function updateBillPreview() {
+  const biz = document.getElementById('vat-biz').value || 'Your Business';
+  const pan = document.getElementById('vat-pan').value || '—';
+  const buyer = document.getElementById('vat-buyer').value || 'Customer';
+  const date = document.getElementById('vat-date').value || todayStr();
+  const subtotal = vatItems.reduce((s, i) => s + i.rate, 0);
+  const vat = subtotal * 0.13;
+  const total = subtotal + vat;
+  const billNo = 'INV-' + Date.now().toString().slice(-5);
+  document.getElementById('bill-preview').innerHTML = `
+    <div style="text-align:center;margin-bottom:8px;">
+      <div style="font-weight:600;font-size:15px;">${biz}</div>
+      <div style="font-size:11px;color:var(--text2);">PAN: ${pan}</div>
+      <div style="font-size:11px;color:var(--text2);">Bill No: ${billNo} | ${date}</div>
+      <div style="font-size:11px;color:var(--text2);">Buyer: ${buyer}</div>
+    </div>
+    <hr class="bill-divider"/>
+    ${vatItems.map(i => `<div class="bill-row"><span>${i.name || 'Item'}</span><span>${fmt(i.rate)}</span></div>`).join('')}
+    <hr class="bill-divider"/>
+    <div class="bill-row"><span>Subtotal</span><span>${fmt(subtotal)}</span></div>
+    <div class="bill-row" style="color:var(--red);"><span>VAT (13%)</span><span>+ ${fmt(vat)}</span></div>
+    <hr class="bill-divider"/>
+    <div class="bill-row bill-total"><span>Total</span><span>${fmt(total)}</span></div>`;
+}
+function shareVatWhatsApp() {
+  const biz = document.getElementById('vat-biz').value || 'Business';
+  const pan = document.getElementById('vat-pan').value || '—';
+  const buyer = document.getElementById('vat-buyer').value || 'Customer';
+  const date = document.getElementById('vat-date').value || todayStr();
+  const subtotal = vatItems.reduce((s, i) => s + i.rate, 0);
+  const vat = subtotal * 0.13; const total = subtotal + vat;
+  const billNo = 'INV-' + Date.now().toString().slice(-5);
+  let lines = ['🧾 *VAT Bill*', '', '*' + biz + '*', 'PAN: ' + pan, 'Bill No: ' + billNo + ' | ' + date, 'Buyer: ' + buyer, ''];
+  vatItems.forEach(i => lines.push('• ' + (i.name || 'Item') + ' — ' + fmt(i.rate)));
+  lines.push('', 'Subtotal: ' + fmt(subtotal), 'VAT (13%): +' + fmt(vat), '*Total: ' + fmt(total) + '*', '', '_Hisab-Kitab_');
+  window.open('https://wa.me/?text=' + encodeURIComponent(lines.join('\n')), '_blank');
+}
+function shareWhatsApp() {
+  const f = getFilteredEntries();
+  const income = f.filter(e => e.type === 'in').reduce((s, e) => s + e.amount, 0);
+  const expense = f.filter(e => e.type === 'out').reduce((s, e) => s + e.amount, 0);
+  const bal = income - expense;
+  let lines = ['📒 *Hisab-Kitab Report*', '📅 ' + new Date().toLocaleDateString('en-IN'), '', '✅ Income: ' + fmt(income), '❌ Expense: ' + fmt(expense), '💰 Balance: ' + fmt(Math.abs(bal)) + (bal < 0 ? ' (loss)' : ''), '', '*Entries:*'];
+  f.slice(0, 10).forEach(e => lines.push((e.type === 'in' ? '➕' : '➖') + ' ' + e.desc + ' — ' + fmt(e.amount) + ' (' + e.category + ')'));
+  if (f.length > 10) lines.push('...and ' + (f.length - 10) + ' more');
+  lines.push('', '_Sent from Hisab-Kitab_');
+  window.open('https://wa.me/?text=' + encodeURIComponent(lines.join('\n')), '_blank');
+}
+
+// AI
+function buildDataSummary() {
+  const income = entries.filter(e => e.type === 'in').reduce((s, e) => s + e.amount, 0);
+  const expense = entries.filter(e => e.type === 'out').reduce((s, e) => s + e.amount, 0);
+  const catTotals = {};
+  entries.filter(e => e.type === 'out').forEach(e => { catTotals[e.category] = (catTotals[e.category] || 0) + e.amount; });
+  const topCats = Object.entries(catTotals).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const thisMonth = entries.filter(e => { const d = new Date(e.date); const n = new Date(); return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear(); });
+  const mIncome = thisMonth.filter(e => e.type === 'in').reduce((s, e) => s + e.amount, 0);
+  const mExpense = thisMonth.filter(e => e.type === 'out').reduce((s, e) => s + e.amount, 0);
+  return `Business data:\n- All-time income: NPR ${Math.round(income)}\n- All-time expense: NPR ${Math.round(expense)}\n- Net balance: NPR ${Math.round(income - expense)}\n- This month income: NPR ${Math.round(mIncome)}\n- This month expense: NPR ${Math.round(mExpense)}\n- This month profit/loss: NPR ${Math.round(mIncome - mExpense)}\n- Top expense categories: ${topCats.map(([c, v]) => c + ' NPR ' + Math.round(v)).join(', ') || 'none'}\n- Total transactions: ${entries.length}`;
+}
+
+function getAutoInsights() {
+  if (entries.length === 0) return [];
+  const income = entries.filter(e => e.type === 'in').reduce((s, e) => s + e.amount, 0);
+  const expense = entries.filter(e => e.type === 'out').reduce((s, e) => s + e.amount, 0);
+  const catTotals = {};
+  entries.filter(e => e.type === 'out').forEach(e => { catTotals[e.category] = (catTotals[e.category] || 0) + e.amount; });
+  const topCat = Object.entries(catTotals).sort((a, b) => b[1] - a[1])[0];
+  const insights = [];
+  const margin = expense > 0 ? ((income - expense) / income * 100) : 100;
+  if (income > 0) {
+    if (margin > 20) insights.push({ icon: '📈', title: 'Healthy profit margin', body: `You're keeping ${Math.round(margin)}% of your income as profit. Good discipline!` });
+    else if (margin > 0) insights.push({ icon: '⚠️', title: 'Thin margin', body: `Only ${Math.round(margin)}% profit margin. Your expenses are high relative to income.` });
+    else insights.push({ icon: '🔴', title: 'Running at a loss', body: `Expenses exceed income by ${fmt(Math.abs(income - expense))}. Review your costs urgently.` });
+  }
+  if (topCat && expense > 0) {
+    const pct = Math.round(topCat[1] / expense * 100);
+    insights.push({ icon: '💸', title: `${topCat[0]} is your biggest cost`, body: `${pct}% of all expenses go to ${topCat[0]} (${fmt(topCat[1])}). Worth reviewing.` });
+  }
+  const todayIncome = entries.filter(e => e.date === todayStr() && e.type === 'in').reduce((s, e) => s + e.amount, 0);
+  if (todayIncome > 0) insights.push({ icon: '✅', title: "Today's performance", body: `You've earned ${fmt(todayIncome)} today. Keep going!` });
+  return insights.slice(0, 3);
+}
+
+function renderAutoInsights() {
+  const insights = getAutoInsights();
+  const el = document.getElementById('auto-insights');
+  if (insights.length === 0) {
+    el.innerHTML = '<div class="no-data-note">Add some transactions in the Ledger tab to unlock AI insights about your business.</div>';
+    return;
+  }
+  el.innerHTML = insights.map(i => `<div class="insight-card"><div class="insight-icon">${i.icon}</div><div class="insight-title">${i.title}</div><div class="insight-body">${i.body}</div></div>`).join('');
+}
+
+function renderChips() {
+  document.getElementById('ai-chips').innerHTML = T[lang].chips.map(c =>
+    `<button class="ai-chip" onclick="chipAsk('${c.replace(/'/g, "\\'")}')">${c}</button>`
+  ).join('');
+}
+
+function chipAsk(q) { document.getElementById('ai-input').value = q; askAI(); }
+
+async function askAI() {
+  const input = document.getElementById('ai-input');
+  const q = input.value.trim();
+  if (!q) return;
+  input.value = '';
+  const btn = document.getElementById('ai-send-btn');
+  btn.disabled = true; btn.textContent = '...';
+  aiHistory.push({ role: 'user', content: q });
+  renderAIMessages();
+  const msgsEl = document.getElementById('ai-messages');
+  const loadingDiv = document.createElement('div');
+  loadingDiv.className = 'ai-msg loading';
+  loadingDiv.textContent = 'Thinking...';
+  msgsEl.appendChild(loadingDiv);
+  const systemPrompt = `You are a friendly business advisor for a small Nepali business owner using the Hisab-Kitab app. Give practical, specific, actionable advice in simple language. Keep responses concise (2-4 sentences). Use रू for currency. Here is the business financial data:\n\n${buildDataSummary()}\n\nRespond in ${lang === 'ne' ? 'Nepali' : 'English'}.`;
+  try {
+    const fullPrompt = systemPrompt + '\n\nConversation so far:\n' +
+      aiHistory.slice(0, -1).map(m => (m.role === 'user' ? 'User: ' : 'Advisor: ') + m.content).join('\n') +
+      '\n\nUser: ' + q;
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
+      }
+    );
+    const data = await res.json();
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, could not get a response.';
+    aiHistory.push({ role: 'assistant', content: reply });
+    loadingDiv.remove();
+    renderAIMessages();
+  } catch(e) {
+    loadingDiv.textContent = 'Could not connect. Check your API key in the code.';
+  }
+  btn.disabled = false; btn.textContent = 'Ask ↗';
+}
+
+function renderAIMessages() {
+  const el = document.getElementById('ai-messages');
+  el.innerHTML = aiHistory.map(m => `<div class="ai-msg ${m.role}">${m.content.replace(/\n/g, '<br>')}</div>`).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+document.getElementById('ai-input').addEventListener('keydown', e => { if (e.key === 'Enter') askAI(); });
+['vat-biz','vat-pan','vat-buyer','vat-date'].forEach(id => document.getElementById(id).addEventListener('input', updateBillPreview));
+
+// Init
+loadEntries();
+document.getElementById('date').valueAsDate = new Date();
+document.getElementById('vat-date').valueAsDate = new Date();
+vatItems = [{ id: 1, name: '', rate: 0 }];
+renderVatItems(); updateBillPreview();
+updateSummary(); renderEntries(); updateFilterLabels();
+</script>
+</body>
+</html>
