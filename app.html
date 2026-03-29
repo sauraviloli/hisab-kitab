@@ -7,10 +7,11 @@
   <meta name="description" content="Free bilingual business manager for Nepali small businesses."/>
   <link rel="manifest" href="manifest.json"/>
   <meta name="theme-color" content="#1D9E75"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
   <meta name="apple-mobile-web-app-title" content="Hisab-Kitab"/>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📒</text></svg>"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -32,12 +33,18 @@
     }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
+    /* LOADING */
+    .loading-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; flex-direction: column; gap: 1rem; }
+    .loading-screen .logo { font-size: 48px; animation: pulse 1.5s ease infinite; }
+    .loading-screen p { font-size: 14px; color: var(--text2); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
     /* AUTH */
     .auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1.5rem; }
     .auth-card { background: var(--surface); border-radius: var(--radius-xl); border: 0.5px solid var(--border); padding: 2rem 1.75rem; width: 100%; max-width: 380px; }
     .auth-logo { font-size: 32px; margin-bottom: 0.5rem; }
     .auth-title { font-size: 22px; font-weight: 600; margin-bottom: 0.25rem; }
-    .auth-sub { font-size: 13px; color: var(--text2); margin-bottom: 1.75rem; }
+    .auth-sub { font-size: 13px; color: var(--text2); margin-bottom: 1.75rem; line-height: 1.5; }
     .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; border-radius: var(--radius); overflow: hidden; border: 0.5px solid var(--border2); margin-bottom: 1.25rem; }
     .auth-tab { padding: 8px; font-size: 13px; font-weight: 500; border: none; background: transparent; color: var(--text2); cursor: pointer; font-family: inherit; }
     .auth-tab.active { background: var(--surface2); color: var(--text); }
@@ -45,11 +52,13 @@
     .field label { font-size: 11px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 4px; }
     .field input { width: 100%; padding: 10px 12px; font-size: 14px; font-family: inherit; background: var(--bg); border: 0.5px solid var(--border2); border-radius: var(--radius); color: var(--text); outline: none; }
     .field input:focus { border-color: var(--green); }
-    .auth-btn { width: 100%; padding: 11px; border-radius: var(--radius); border: none; background: var(--green); color: white; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 6px; }
+    .auth-btn { width: 100%; padding: 11px; border-radius: var(--radius); border: none; background: var(--green); color: white; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 6px; transition: background 0.15s; }
     .auth-btn:hover { background: var(--green-dark); }
+    .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
     .auth-err { font-size: 13px; color: var(--red); margin-top: 8px; text-align: center; min-height: 18px; }
-    .auth-skip { text-align: center; margin-top: 14px; font-size: 13px; color: var(--text2); }
-    .auth-skip a { color: var(--green); cursor: pointer; text-decoration: none; }
+    .auth-divider { text-align: center; margin: 14px 0; font-size: 12px; color: var(--text3); }
+    .auth-google { width: 100%; padding: 10px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: transparent; color: var(--text); font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .auth-google:hover { background: var(--surface2); }
 
     /* APP */
     .app { max-width: 480px; margin: 0 auto; padding: 1rem 1rem 5.5rem; display: none; }
@@ -61,6 +70,10 @@
     .lang-btn { font-size: 12px; padding: 5px 10px; border: none; background: transparent; color: var(--text2); cursor: pointer; font-family: inherit; }
     .lang-btn.active { background: var(--surface2); color: var(--text); font-weight: 500; }
     .avatar-btn { width: 32px; height: 32px; border-radius: 50%; background: var(--green-light); color: var(--green-dark); border: none; cursor: pointer; font-size: 14px; font-weight: 600; font-family: inherit; display: flex; align-items: center; justify-content: center; }
+    .sync-indicator { font-size: 10px; color: var(--text3); display: flex; align-items: center; gap: 3px; }
+    .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+    .sync-dot.syncing { background: var(--amber); animation: pulse 1s infinite; }
+    .sync-dot.offline { background: var(--red); }
 
     /* BOTTOM NAV */
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 0.5px solid var(--border); display: flex; z-index: 100; padding-bottom: env(safe-area-inset-bottom); }
@@ -85,11 +98,8 @@
     .form-label { font-size: 11px; color: var(--text2); margin-bottom: 3px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
     input, select, textarea { width: 100%; padding: 8px 10px; font-size: 14px; font-family: inherit; background: var(--bg); border: 0.5px solid var(--border2); border-radius: var(--radius); color: var(--text); outline: none; }
     input:focus, select:focus, textarea:focus { border-color: var(--green); }
-    textarea { resize: vertical; min-height: 60px; }
-    .submit-btn { width: 100%; padding: 10px; border-radius: var(--radius); border: none; background: var(--green); color: white; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 2px; font-family: inherit; }
+    .submit-btn { width: 100%; padding: 10px; border-radius: var(--radius); border: none; background: var(--green); color: white; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 2px; font-family: inherit; transition: background 0.15s; }
     .submit-btn:hover { background: var(--green-dark); }
-    .submit-btn:active { transform: scale(0.99); }
-    .submit-btn.secondary { background: transparent; color: var(--text); border: 0.5px solid var(--border2); }
     .submit-btn.danger { background: var(--red); }
 
     /* FILTERS */
@@ -100,7 +110,7 @@
     /* SECTION HEADER */
     .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
     .section-title { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; }
-    .icon-btn { display: flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: transparent; color: var(--text2); font-size: 12px; font-weight: 500; cursor: pointer; font-family: inherit; }
+    .icon-btn { display: flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: transparent; color: var(--text2); font-size: 12px; font-weight: 500; cursor: pointer; font-family: inherit; text-decoration: none; }
     .icon-btn:hover { background: var(--surface2); }
     .icon-btn.green { border-color: #25D366; color: #1A9E4E; }
     .icon-btn.green:hover { background: var(--green-light); }
@@ -167,9 +177,7 @@
     .stock-name { font-size: 14px; font-weight: 500; }
     .stock-meta { font-size: 11px; color: var(--text2); margin-top: 2px; }
     .stock-qty { font-size: 18px; font-weight: 600; }
-    .stock-qty.low { color: var(--red); }
-    .stock-qty.ok { color: var(--green); }
-    .badge { display: inline-block; font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 20px; }
+    .badge { display: inline-block; font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 20px; margin-left: 4px; }
     .badge.low { background: var(--red-light); color: var(--red); }
     .badge.ok { background: var(--green-light); color: var(--green-dark); }
     .badge.warn { background: var(--amber-light); color: var(--amber); }
@@ -179,49 +187,44 @@
     .customer-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--green-light); color: var(--green-dark); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; flex-shrink: 0; }
     .customer-name { font-size: 14px; font-weight: 500; }
     .customer-meta { font-size: 11px; color: var(--text2); margin-top: 2px; }
-    .customer-total { font-size: 13px; font-weight: 600; color: var(--green); }
 
-    /* PROFILE / SETTINGS */
+    /* SETTINGS */
     .settings-section { margin-bottom: 1.25rem; }
     .settings-label { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
-    .settings-row { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 0.5px solid var(--border); padding: 0.875rem 1rem; font-size: 14px; cursor: pointer; }
-    .settings-row:first-of-type { border-radius: var(--radius) var(--radius) 0 0; }
-    .settings-row:last-of-type { border-radius: 0 0 var(--radius) var(--radius); border-top: none; }
-    .settings-row:only-child { border-radius: var(--radius); }
-    .settings-row + .settings-row { border-top: none; }
+    .settings-rows { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 0.875rem 1rem; font-size: 14px; cursor: pointer; border-bottom: 0.5px solid var(--border); }
+    .settings-row:last-child { border-bottom: none; }
     .settings-val { font-size: 13px; color: var(--text2); }
 
     /* MODAL */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: flex-end; justify-content: center; }
-    .modal { background: var(--surface); border-radius: var(--radius-xl) var(--radius-xl) 0 0; padding: 1.5rem 1.25rem 2rem; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; }
-    .modal-title { font-size: 17px; font-weight: 600; margin-bottom: 1.25rem; }
-    .modal-close { float: right; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text2); }
+    .modal { background: var(--surface); border-radius: var(--radius-xl) var(--radius-xl) 0 0; padding: 1.5rem 1.25rem 2.5rem; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; }
+    .modal-title { font-size: 17px; font-weight: 600; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; }
+    .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text2); }
 
     /* TOAST */
     .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); font-size: 13px; padding: 7px 18px; border-radius: 20px; opacity: 0; transition: opacity 0.25s; pointer-events: none; white-space: nowrap; z-index: 300; }
     .toast.show { opacity: 1; }
 
-    /* TAX REPORT */
+    /* TAX */
     .tax-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 0.5px solid var(--border); font-size: 14px; }
-    .tax-row:last-child { border-bottom: none; font-weight: 600; font-size: 15px; }
+    .tax-row:last-child { border-bottom: none; font-weight: 600; }
     .tax-month { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.04em; margin: 1rem 0 6px; }
 
     /* VIEWS */
     .view { display: none; }
     .view.active { display: block; }
 
-    /* NEPALI DATE */
-    .bs-date { font-size: 11px; color: var(--text3); }
-
     /* PRINT */
     @media print {
       body { background: white !important; }
-      .bottom-nav, .add-form, .filter-row, .header, nav, .ai-ask-box, .ai-messages { display: none !important; }
+      .bottom-nav, .card, .filter-row, .header, .ai-ask-box, .ai-messages { display: none !important; }
       .app { padding: 0 !important; max-width: 100% !important; display: block !important; }
-      .view { display: block !important; }
-      #view-report, #view-vat, #view-ai, #view-stock, #view-customers, #view-settings { display: none !important; }
+      .view { display: none !important; }
+      #view-ledger { display: block !important; }
       .print-header { display: block !important; }
       .entry { break-inside: avoid; }
+      .section-header .icon-btn { display: none !important; }
     }
     .print-header { display: none; padding-bottom: 1rem; border-bottom: 1px solid #eee; margin-bottom: 1rem; }
     .print-header h1 { font-size: 20px; font-weight: 600; }
@@ -232,22 +235,32 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- AUTH SCREEN -->
-<div class="auth-screen" id="auth-screen">
+<!-- LOADING -->
+<div class="loading-screen" id="loading-screen">
+  <div class="logo">📒</div>
+  <p>Loading Hisab-Kitab...</p>
+</div>
+
+<!-- AUTH -->
+<div class="auth-screen" id="auth-screen" style="display:none;">
   <div class="auth-card">
     <div class="auth-logo">📒</div>
     <div class="auth-title">Hisab-Kitab</div>
-    <div class="auth-sub" id="auth-sub">Sign in to sync your data across devices</div>
+    <div class="auth-sub">Sign in to sync your data across all your devices — free forever.</div>
     <div class="auth-tabs">
       <button class="auth-tab active" onclick="setAuthTab('login')" id="auth-tab-login">Sign In</button>
       <button class="auth-tab" onclick="setAuthTab('signup')" id="auth-tab-signup">Sign Up</button>
     </div>
-    <div class="field"><label id="lbl-email">Email</label><input type="email" id="auth-email" placeholder="you@example.com"/></div>
-    <div class="field"><label id="lbl-password">Password</label><input type="password" id="auth-password" placeholder="••••••••"/></div>
-    <div class="field" id="biz-field" style="display:none;"><label id="lbl-bizname">Business Name</label><input type="text" id="auth-biz" placeholder="Your Shop Name"/></div>
+    <div class="field"><label>Email</label><input type="email" id="auth-email" placeholder="you@example.com"/></div>
+    <div class="field"><label>Password</label><input type="password" id="auth-password" placeholder="••••••••"/></div>
+    <div class="field" id="biz-field" style="display:none;"><label>Business Name</label><input type="text" id="auth-biz" placeholder="Your Shop Name"/></div>
     <button class="auth-btn" onclick="doAuth()" id="auth-btn">Sign In</button>
     <div class="auth-err" id="auth-err"></div>
-    <div class="auth-skip">or <a onclick="skipAuth()">continue without account →</a></div>
+    <div class="auth-divider">— or —</div>
+    <button class="auth-google" onclick="doGoogleAuth()">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continue with Google
+    </button>
   </div>
 </div>
 
@@ -259,6 +272,10 @@
       <div class="biz-sub" id="today-bs-date"></div>
     </div>
     <div class="header-right">
+      <div class="sync-indicator" id="sync-indicator">
+        <div class="sync-dot" id="sync-dot"></div>
+        <span id="sync-text">Synced</span>
+      </div>
       <div class="lang-toggle">
         <button class="lang-btn active" onclick="setLang('en')" id="btn-en">EN</button>
         <button class="lang-btn" onclick="setLang('ne')" id="btn-ne">ने</button>
@@ -269,7 +286,7 @@
 
   <!-- LEDGER -->
   <div class="view active" id="view-ledger">
-    <div class="print-header"><h1>📒 Hisab-Kitab Report</h1><p id="print-date"></p></div>
+    <div class="print-header"><h1>📒 Hisab-Kitab — Business Report</h1><p id="print-date"></p></div>
     <div class="summary-grid">
       <div class="metric"><div class="metric-label" id="lbl-income">Income</div><div class="metric-value" style="color:var(--green)" id="val-income">रू 0</div></div>
       <div class="metric"><div class="metric-label" id="lbl-expense">Expense</div><div class="metric-value" style="color:var(--red)" id="val-expense">रू 0</div></div>
@@ -297,9 +314,7 @@
         </div>
         <div><div class="form-label" id="lbl-date">Date</div><input type="date" id="date"/></div>
       </div>
-      <div class="form-row full" style="margin-bottom:0;">
-        <div><div class="form-label" id="lbl-note">Note (optional)</div><input type="text" id="note" placeholder="Extra details..."/></div>
-      </div>
+      <div class="form-row full"><div><div class="form-label" id="lbl-note">Note (optional)</div><input type="text" id="note" placeholder="Extra details..."/></div></div>
       <button class="submit-btn" style="margin-top:10px;" onclick="addEntry()" id="add-btn">+ Add Entry</button>
     </div>
     <div class="filter-row">
@@ -327,7 +342,7 @@
   <!-- REPORT -->
   <div class="view" id="view-report">
     <div class="chart-wrap">
-      <div class="chart-title" id="chart-title">Last 7 Days</div>
+      <div class="chart-title">Last 7 Days</div>
       <div class="bar-chart" id="bar-chart"></div>
       <div class="legend">
         <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span id="leg-income">Income</span></div>
@@ -340,11 +355,11 @@
       <div class="metric"><div class="metric-label" id="r-lbl-balance">Net Balance</div><div class="metric-value" id="r-val-balance">रू 0</div></div>
     </div>
     <div class="chart-wrap">
-      <div class="chart-title" id="cat-title">Top Expense Categories</div>
+      <div class="chart-title">Top Expense Categories</div>
       <div id="cat-chart"></div>
     </div>
     <div class="chart-wrap">
-      <div class="chart-title" id="tax-title">Monthly Tax Summary</div>
+      <div class="chart-title">Monthly Tax Summary</div>
       <div id="tax-report"></div>
     </div>
   </div>
@@ -353,20 +368,20 @@
   <div class="view" id="view-vat">
     <div class="card">
       <div class="form-row">
-        <div><div class="form-label" id="vat-lbl-biz">Business Name</div><input type="text" id="vat-biz" placeholder="Your Shop"/></div>
-        <div><div class="form-label" id="vat-lbl-pan">PAN No.</div><input type="text" id="vat-pan" placeholder="123456789"/></div>
+        <div><div class="form-label">Business Name</div><input type="text" id="vat-biz" placeholder="Your Shop"/></div>
+        <div><div class="form-label">PAN No.</div><input type="text" id="vat-pan" placeholder="123456789"/></div>
       </div>
       <div class="form-row">
-        <div><div class="form-label" id="vat-lbl-buyer">Buyer Name</div><input type="text" id="vat-buyer" placeholder="Customer"/></div>
-        <div><div class="form-label" id="vat-lbl-bdate">Date</div><input type="date" id="vat-date"/></div>
+        <div><div class="form-label">Buyer Name</div><input type="text" id="vat-buyer" placeholder="Customer"/></div>
+        <div><div class="form-label">Date</div><input type="date" id="vat-date"/></div>
       </div>
-      <div class="form-label" style="margin-bottom:6px;" id="vat-lbl-items">Items</div>
+      <div class="form-label" style="margin-bottom:6px;">Items</div>
       <div id="vat-items"></div>
-      <button class="add-link" onclick="addVatItem()" id="vat-add-btn">+ Add item</button>
+      <button class="add-link" onclick="addVatItem()">+ Add item</button>
       <div class="bill-preview" id="bill-preview"></div>
       <button class="wa-btn-full" onclick="shareVatWhatsApp()">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-        <span id="vat-share-btn">Send Bill via WhatsApp</span>
+        Send Bill via WhatsApp
       </button>
     </div>
   </div>
@@ -375,11 +390,11 @@
   <div class="view" id="view-stock">
     <div class="card">
       <div class="form-row">
-        <div><div class="form-label" id="s-lbl-name">Item Name</div><input type="text" id="stock-name" placeholder="e.g. Rice 5kg"/></div>
-        <div><div class="form-label" id="s-lbl-qty">Quantity</div><input type="number" id="stock-qty" placeholder="0" min="0"/></div>
+        <div><div class="form-label">Item Name</div><input type="text" id="stock-name" placeholder="e.g. Rice 5kg"/></div>
+        <div><div class="form-label">Quantity</div><input type="number" id="stock-qty" placeholder="0" min="0"/></div>
       </div>
       <div class="form-row">
-        <div><div class="form-label" id="s-lbl-unit">Unit</div>
+        <div><div class="form-label">Unit</div>
           <select id="stock-unit">
             <option value="pcs">Pieces / थान</option>
             <option value="kg">Kg / किलो</option>
@@ -388,15 +403,13 @@
             <option value="dozen">Dozen / दर्जन</option>
           </select>
         </div>
-        <div><div class="form-label" id="s-lbl-low">Low Stock Alert</div><input type="number" id="stock-low" placeholder="Min qty" min="0"/></div>
+        <div><div class="form-label">Low Stock Alert</div><input type="number" id="stock-low" placeholder="Min qty" min="0"/></div>
       </div>
-      <div class="form-row full">
-        <div><div class="form-label" id="s-lbl-price">Cost Price (रू)</div><input type="number" id="stock-price" placeholder="0" min="0"/></div>
-      </div>
-      <button class="submit-btn" onclick="addStockItem()" id="s-add-btn">+ Add Item</button>
+      <div class="form-row full"><div><div class="form-label">Cost Price (रू)</div><input type="number" id="stock-price" placeholder="0" min="0"/></div></div>
+      <button class="submit-btn" onclick="addStockItem()">+ Add Item</button>
     </div>
     <div class="section-header" style="margin-bottom:8px;">
-      <div class="section-title" id="s-lbl-inventory">Inventory</div>
+      <div class="section-title">Inventory</div>
       <div id="low-stock-count" style="font-size:12px;color:var(--red);font-weight:500;"></div>
     </div>
     <div id="stock-list"></div>
@@ -406,16 +419,14 @@
   <div class="view" id="view-customers">
     <div class="card">
       <div class="form-row">
-        <div><div class="form-label" id="c-lbl-name">Customer Name</div><input type="text" id="cust-name" placeholder="Full name"/></div>
-        <div><div class="form-label" id="c-lbl-phone">Phone</div><input type="tel" id="cust-phone" placeholder="98XXXXXXXX"/></div>
+        <div><div class="form-label">Customer Name</div><input type="text" id="cust-name" placeholder="Full name"/></div>
+        <div><div class="form-label">Phone</div><input type="tel" id="cust-phone" placeholder="98XXXXXXXX"/></div>
       </div>
-      <div class="form-row full">
-        <div><div class="form-label" id="c-lbl-addr">Address</div><input type="text" id="cust-addr" placeholder="City / Area"/></div>
-      </div>
-      <button class="submit-btn" onclick="addCustomer()" id="c-add-btn">+ Add Customer</button>
+      <div class="form-row full"><div><div class="form-label">Address</div><input type="text" id="cust-addr" placeholder="City / Area"/></div></div>
+      <button class="submit-btn" onclick="addCustomer()">+ Add Customer</button>
     </div>
     <div class="section-header" style="margin-bottom:8px;">
-      <div class="section-title" id="c-lbl-list">Customers</div>
+      <div class="section-title">Customers</div>
       <div id="cust-count" style="font-size:12px;color:var(--text2);"></div>
     </div>
     <div id="customer-list"></div>
@@ -438,53 +449,61 @@
   <!-- SETTINGS -->
   <div class="view" id="view-settings">
     <div class="settings-section">
-      <div class="settings-label" id="set-lbl-account">Account</div>
-      <div class="settings-row" id="set-user-row">
-        <span id="set-user-email">Not signed in</span>
-        <span class="settings-val" id="set-user-status">Guest</span>
-      </div>
-      <div class="settings-row" onclick="showBizModal()">
-        <span id="set-lbl-bizname">Business Name</span>
-        <span class="settings-val" id="set-biz-val">—</span>
-      </div>
-    </div>
-    <div class="settings-section">
-      <div class="settings-label" id="set-lbl-prefs">Preferences</div>
-      <div class="settings-row">
-        <span id="set-lbl-lang">Language</span>
-        <div class="lang-toggle" style="margin:0;">
-          <button class="lang-btn active" onclick="setLang('en')" id="set-btn-en">EN</button>
-          <button class="lang-btn" onclick="setLang('ne')" id="set-btn-ne">ने</button>
+      <div class="settings-label">Account</div>
+      <div class="settings-rows">
+        <div class="settings-row">
+          <span id="set-user-email">Not signed in</span>
+          <span class="settings-val" style="color:var(--green)">✓ Synced</span>
+        </div>
+        <div class="settings-row" onclick="showBizModal()">
+          <span>Business Profile</span>
+          <span class="settings-val" id="set-biz-val">Edit →</span>
         </div>
       </div>
-      <div class="settings-row">
-        <span id="set-lbl-pan">PAN Number</span>
-        <input type="text" id="set-pan" placeholder="123456789" style="width:130px;text-align:right;border:none;background:transparent;font-size:13px;color:var(--text2);padding:0;" oninput="savePref('pan', this.value)"/>
+    </div>
+    <div class="settings-section">
+      <div class="settings-label">Preferences</div>
+      <div class="settings-rows">
+        <div class="settings-row">
+          <span>Language</span>
+          <div class="lang-toggle" style="margin:0;">
+            <button class="lang-btn active" onclick="setLang('en')" id="set-btn-en">EN</button>
+            <button class="lang-btn" onclick="setLang('ne')" id="set-btn-ne">ने</button>
+          </div>
+        </div>
+        <div class="settings-row">
+          <span>PAN Number</span>
+          <input type="text" id="set-pan" placeholder="123456789" style="width:130px;text-align:right;border:none;background:transparent;font-size:13px;color:var(--text2);padding:0;" oninput="savePref('pan', this.value)"/>
+        </div>
       </div>
     </div>
     <div class="settings-section">
-      <div class="settings-label" id="set-lbl-data">Data</div>
-      <div class="settings-row" onclick="exportAllData()">
-        <span id="set-lbl-export">Export All Data (JSON)</span>
-        <span class="settings-val">↓</span>
-      </div>
-      <div class="settings-row" onclick="clearAllData()" style="color:var(--red);">
-        <span id="set-lbl-clear">Clear All Data</span>
-        <span class="settings-val" style="color:var(--red);">⚠</span>
+      <div class="settings-label">Data</div>
+      <div class="settings-rows">
+        <div class="settings-row" onclick="exportAllData()">
+          <span>Export All Data (JSON)</span>
+          <span class="settings-val">↓</span>
+        </div>
+        <div class="settings-row" onclick="clearAllData()" style="color:var(--red);">
+          <span>Clear All Data</span>
+          <span class="settings-val" style="color:var(--red);">⚠</span>
+        </div>
       </div>
     </div>
     <div class="settings-section">
       <div class="settings-label">App</div>
-      <div class="settings-row" onclick="installPWA()" id="install-row" style="display:none;">
-        <span id="set-lbl-install">Install App on Phone</span>
-        <span class="settings-val">+</span>
-      </div>
-      <div class="settings-row">
-        <span>Version</span>
-        <span class="settings-val">2.0.0</span>
+      <div class="settings-rows">
+        <div class="settings-row" id="install-row" style="display:none;" onclick="installPWA()">
+          <span>Install App on Phone</span>
+          <span class="settings-val">+</span>
+        </div>
+        <div class="settings-row">
+          <span>Version</span>
+          <span class="settings-val">3.0.0</span>
+        </div>
       </div>
     </div>
-    <button class="submit-btn danger" onclick="doSignOut()" id="signout-btn" style="margin-top:1rem;display:none;">Sign Out</button>
+    <button class="submit-btn danger" onclick="doSignOut()" style="margin-top:1rem;">Sign Out</button>
   </div>
 </div>
 
@@ -501,8 +520,7 @@
 <!-- MODALS -->
 <div class="modal-overlay" id="biz-modal" style="display:none;">
   <div class="modal">
-    <button class="modal-close" onclick="closeBizModal()">×</button>
-    <div class="modal-title" id="biz-modal-title">Business Profile</div>
+    <div class="modal-title">Business Profile <button class="modal-close" onclick="closeBizModal()">×</button></div>
     <div class="field"><label>Business Name</label><input type="text" id="modal-biz-name" placeholder="Your Shop Name"/></div>
     <div class="field"><label>Business Type</label>
       <select id="modal-biz-type">
@@ -522,10 +540,9 @@
 
 <div class="modal-overlay" id="stock-edit-modal" style="display:none;">
   <div class="modal">
-    <button class="modal-close" onclick="document.getElementById('stock-edit-modal').style.display='none'">×</button>
-    <div class="modal-title">Update Stock</div>
+    <div class="modal-title">Update Stock <button class="modal-close" onclick="document.getElementById('stock-edit-modal').style.display='none'">×</button></div>
     <input type="hidden" id="edit-stock-id"/>
-    <div class="field"><label>Item Name</label><input type="text" id="edit-stock-name" readonly style="opacity:0.6;"/></div>
+    <div class="field"><label>Item</label><input type="text" id="edit-stock-name" readonly style="opacity:0.6;"/></div>
     <div class="field"><label>Adjustment (+/-)</label><input type="number" id="edit-stock-adj" placeholder="e.g. +10 or -5"/></div>
     <div class="field"><label>Reason</label>
       <select id="edit-stock-reason">
@@ -541,6 +558,25 @@
 
 <script>
 // ═══════════════════════════════════════════
+// SUPABASE
+// ═══════════════════════════════════════════
+const SUPABASE_URL = 'https://yjghsymqopqfezwdjhki.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqZ2hzeW1xb3BxZmV6d2RqaGtpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3ODMwMzksImV4cCI6MjA5MDM1OTAzOX0.Etp-cAJeDHF4zILcteEF8agdJaKuGPWa2cjCtZ9HiDc';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let lang = localStorage.getItem('hk_lang') || 'en';
+let entryType = 'in', filter = 'today', activeTab = 'ledger';
+let entries = [], stockItems = [], customers = [], aiHistory = [];
+let prefs = { bizName: 'My Business', pan: '', bizType: 'retail', bizAddr: '', bizPhone: '' };
+let currentUser = null;
+let vatItems = [{ id: 1, name: '', rate: 0 }];
+let deferredInstallPrompt = null;
+let syncing = false;
+
+// ═══════════════════════════════════════════
 // TRANSLATIONS
 // ═══════════════════════════════════════════
 const T = {
@@ -551,25 +587,16 @@ const T = {
     addBtn:'+ Add Entry', history:'Entries', share:'Share',
     empty:'No entries yet. Add your first transaction above.',
     today:'Today', week:'This Week', month:'This Month', all:'All',
-    saved:'Entry saved!', deleted:'Deleted', updated:'Updated!',
-    tabLedger:'Ledger', tabReport:'Report', tabVat:'VAT', tabStock:'Stock', tabCustomers:'Customers', tabAi:'AI',
-    chartTitle:'Last 7 Days', catTitle:'Top Expense Categories', taxTitle:'Monthly Tax Summary',
-    vatBiz:'Business Name', vatPan:'PAN No.', vatBuyer:'Buyer Name', vatDate:'Date',
-    vatItems:'Items', vatAddItem:'+ Add item', vatShare:'Send Bill via WhatsApp',
-    rIncome:'Total Income', rExpense:'Total Expense', rBalance:'Net Balance',
+    saved:'Saved!', deleted:'Deleted', updated:'Updated!',
+    ledger:'Ledger', report:'Report', vat:'VAT', stock:'Stock', customers:'Customers', ai:'AI',
     legIncome:'Income', legExpense:'Expense',
-    sName:'Item Name', sQty:'Quantity', sUnit:'Unit', sLow:'Low Stock Alert', sPrice:'Cost Price (रू)', sAdd:'+ Add Item', sInventory:'Inventory',
-    cName:'Customer Name', cPhone:'Phone', cAddr:'Address', cAdd:'+ Add Customer', cList:'Customers',
     aiAskTitle:'Ask your business advisor',
     chips:['How is my business doing?','Where am I spending most?','How can I save money?','Am I profitable?','What stock should I reorder?'],
-    setAccount:'Account', setPrefs:'Preferences', setData:'Data', setLang:'Language', setPan:'PAN Number', setExport:'Export All Data', setClear:'Clear All Data', setBizName:'Business Name', setInstall:'Install App on Phone',
-    signIn:'Sign In', signUp:'Sign Up', signOut:'Sign Out', signingIn:'Signing in...',
-    authSub:'Sign in to sync your data across devices',
-    emailLbl:'Email', passwordLbl:'Password', bizNameLbl:'Business Name',
+    noEntries:'No entries yet. Add your first transaction above.',
+    noCustomers:'No customers yet.',
+    noStock:'No items yet.',
     lowStock:'low stock items',
-    bizModal:'Business Profile',
-    noCustomers:'No customers yet. Add your first customer above.',
-    noStock:'No items yet. Add your first inventory item above.',
+    syncing:'Syncing...', synced:'Synced', offline:'Offline',
   },
   ne: {
     income:'आम्दानी', expense:'खर्च', balance:'मौज्दात',
@@ -579,58 +606,17 @@ const T = {
     empty:'अहिलेसम्म कुनै लेनदेन छैन।',
     today:'आज', week:'यो हप्ता', month:'यो महिना', all:'सबै',
     saved:'सेभ भयो!', deleted:'मेटियो', updated:'अपडेट भयो!',
-    tabLedger:'हिसाब', tabReport:'रिपोर्ट', tabVat:'VAT', tabStock:'स्टक', tabCustomers:'ग्राहक', tabAi:'AI',
-    chartTitle:'७ दिनको हिसाब', catTitle:'खर्चका मुख्य श्रेणी', taxTitle:'मासिक कर सारांश',
-    vatBiz:'व्यवसायको नाम', vatPan:'PAN नं.', vatBuyer:'खरिदकर्ता', vatDate:'मिति',
-    vatItems:'सामानहरू', vatAddItem:'+ सामान थप्नुहोस्', vatShare:'WhatsApp मा बिल पठाउनुहोस्',
-    rIncome:'कुल आम्दानी', rExpense:'कुल खर्च', rBalance:'खुद मौज्दात',
+    ledger:'हिसाब', report:'रिपोर्ट', vat:'VAT', stock:'स्टक', customers:'ग्राहक', ai:'AI',
     legIncome:'आम्दानी', legExpense:'खर्च',
-    sName:'सामानको नाम', sQty:'मात्रा', sUnit:'एकाइ', sLow:'न्यून स्टक', sPrice:'लागत मूल्य (रू)', sAdd:'+ सामान थप्नुहोस्', sInventory:'भण्डार',
-    cName:'ग्राहकको नाम', cPhone:'फोन', cAddr:'ठेगाना', cAdd:'+ ग्राहक थप्नुहोस्', cList:'ग्राहकहरू',
     aiAskTitle:'आफ्नो व्यापार सल्लाहकारलाई सोध्नुहोस्',
     chips:['मेरो व्यापार कस्तो छ?','म सबैभन्दा बढी कहाँ खर्च गर्दैछु?','पैसा कसरी बचाउने?','मैले नाफा कमाउँदैछु?','कुन स्टक पुनः अर्डर गर्ने?'],
-    setAccount:'खाता', setPrefs:'प्राथमिकताहरू', setData:'डेटा', setLang:'भाषा', setPan:'PAN नम्बर', setExport:'सबै डेटा निर्यात', setClear:'सबै डेटा मेटाउनुहोस्', setBizName:'व्यवसायको नाम', setInstall:'फोनमा एप स्थापना गर्नुहोस्',
-    signIn:'साइन इन', signUp:'साइन अप', signOut:'साइन आउट', signingIn:'साइन इन हुँदैछ...',
-    authSub:'उपकरणहरूमा डेटा सिंक गर्न साइन इन गर्नुहोस्',
-    emailLbl:'इमेल', passwordLbl:'पासवर्ड', bizNameLbl:'व्यवसायको नाम',
-    lowStock:'न्यून स्टक वस्तुहरू',
-    bizModal:'व्यवसाय प्रोफाइल',
+    noEntries:'अहिलेसम्म कुनै लेनदेन छैन।',
     noCustomers:'अहिलेसम्म कुनै ग्राहक छैन।',
     noStock:'अहिलेसम्म कुनै सामान छैन।',
+    lowStock:'न्यून स्टक वस्तुहरू',
+    syncing:'सिंक हुँदैछ...', synced:'सिंक भयो', offline:'अफलाइन',
   }
 };
-
-// ═══════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════
-let lang = 'en', entryType = 'in', filter = 'today', activeTab = 'ledger';
-let entries = [], vatItems = [], stockItems = [], customers = [], aiHistory = [];
-let prefs = { bizName: 'My Business', pan: '', bizType: 'retail', bizAddr: '', bizPhone: '' };
-let currentUser = null;
-let deferredInstallPrompt = null;
-
-// ═══════════════════════════════════════════
-// STORAGE
-// ═══════════════════════════════════════════
-function load() {
-  try {
-    entries = JSON.parse(localStorage.getItem('hk_entries') || '[]');
-    stockItems = JSON.parse(localStorage.getItem('hk_stock') || '[]');
-    customers = JSON.parse(localStorage.getItem('hk_customers') || '[]');
-    prefs = { ...prefs, ...JSON.parse(localStorage.getItem('hk_prefs') || '{}') };
-    lang = localStorage.getItem('hk_lang') || 'en';
-  } catch(e) {}
-}
-function save() {
-  try {
-    localStorage.setItem('hk_entries', JSON.stringify(entries));
-    localStorage.setItem('hk_stock', JSON.stringify(stockItems));
-    localStorage.setItem('hk_customers', JSON.stringify(customers));
-    localStorage.setItem('hk_prefs', JSON.stringify(prefs));
-    localStorage.setItem('hk_lang', lang);
-  } catch(e) {}
-}
-function savePref(key, val) { prefs[key] = val; save(); }
 
 // ═══════════════════════════════════════════
 // UTILITIES
@@ -642,21 +628,21 @@ function showToast(msg) {
   el.textContent = msg; el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 2000);
 }
-
-// Nepali BS date converter (approximate)
-function adToBS(adDate) {
-  const d = new Date(adDate);
-  const adYear = d.getFullYear(), adMonth = d.getMonth() + 1, adDay = d.getDate();
-  // Approximate BS year offset
-  const bsYear = adYear + 56;
-  const bsMonth = ((adMonth + 8) % 12) + 1;
-  const monthNames = ['बैशाख','जेठ','असार','श्रावण','भाद्र','आश्विन','कार्तिक','मंसिर','पुष','माघ','फाल्गुन','चैत'];
-  return `${monthNames[bsMonth-1]} ${adDay}, ${bsYear} BS`;
+function setSyncStatus(status) {
+  const dot = document.getElementById('sync-dot');
+  const text = document.getElementById('sync-text');
+  if (!dot) return;
+  const s = T[lang];
+  if (status === 'syncing') { dot.className = 'sync-dot syncing'; text.textContent = s.syncing; }
+  else if (status === 'offline') { dot.className = 'sync-dot offline'; text.textContent = s.offline; }
+  else { dot.className = 'sync-dot'; text.textContent = s.synced; }
 }
-
-function updateBSDate() {
-  const el = document.getElementById('today-bs-date');
-  if (el) el.textContent = adToBS(new Date());
+function adToBS(date) {
+  const d = new Date(date);
+  const bsYear = d.getFullYear() + 56;
+  const bsMonth = ((d.getMonth() + 8) % 12) + 1;
+  const monthNames = ['बैशाख','जेठ','असार','श्रावण','भाद्र','आश्विन','कार्तिक','मंसिर','पुष','माघ','फाल्गुन','चैत'];
+  return `${monthNames[bsMonth-1]} ${d.getDate()}, ${bsYear} BS`;
 }
 
 // ═══════════════════════════════════════════
@@ -668,48 +654,44 @@ function setAuthTab(t) {
   document.getElementById('auth-tab-login').classList.toggle('active', t === 'login');
   document.getElementById('auth-tab-signup').classList.toggle('active', t === 'signup');
   document.getElementById('biz-field').style.display = t === 'signup' ? 'block' : 'none';
-  document.getElementById('auth-btn').textContent = T[lang][t === 'login' ? 'signIn' : 'signUp'];
+  document.getElementById('auth-btn').textContent = t === 'login' ? 'Sign In' : 'Sign Up';
 }
 
-function doAuth() {
+async function doAuth() {
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
   const bizName = document.getElementById('auth-biz').value.trim();
   const errEl = document.getElementById('auth-err');
-
+  const btn = document.getElementById('auth-btn');
   if (!email || !password) { errEl.textContent = 'Please fill in all fields.'; return; }
-  if (authTab === 'signup' && !bizName) { errEl.textContent = 'Please enter your business name.'; return; }
-
-  document.getElementById('auth-btn').textContent = T[lang].signingIn;
-  errEl.textContent = '';
-
-  // Simulate auth with localStorage (no backend needed for MVP)
-  setTimeout(() => {
-    const users = JSON.parse(localStorage.getItem('hk_users') || '{}');
+  btn.disabled = true; btn.textContent = 'Please wait...'; errEl.textContent = '';
+  try {
+    let result;
     if (authTab === 'signup') {
-      if (users[email]) { errEl.textContent = 'Email already registered.'; document.getElementById('auth-btn').textContent = T[lang].signUp; return; }
-      users[email] = { password, bizName };
-      localStorage.setItem('hk_users', JSON.stringify(users));
-      prefs.bizName = bizName;
-      save();
-      currentUser = { email, bizName };
-      showApp();
+      result = await sb.auth.signUp({ email, password });
+      if (result.error) throw result.error;
+      if (bizName && result.data.user) {
+        await sb.from('profiles').upsert({ id: result.data.user.id, email, biz_name: bizName });
+      }
     } else {
-      if (!users[email] || users[email].password !== password) { errEl.textContent = 'Incorrect email or password.'; document.getElementById('auth-btn').textContent = T[lang].signIn; return; }
-      prefs.bizName = users[email].bizName;
-      save();
-      currentUser = { email, bizName: users[email].bizName };
-      showApp();
+      result = await sb.auth.signInWithPassword({ email, password });
+      if (result.error) throw result.error;
     }
-  }, 600);
+    // onAuthStateChange will handle showing the app
+  } catch(e) {
+    errEl.textContent = e.message || 'Something went wrong.';
+    btn.disabled = false;
+    btn.textContent = authTab === 'login' ? 'Sign In' : 'Sign Up';
+  }
 }
 
-function skipAuth() {
-  currentUser = null;
-  showApp();
+async function doGoogleAuth() {
+  await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
 }
 
-function doSignOut() {
+async function doSignOut() {
+  await sb.auth.signOut();
+  entries = []; stockItems = []; customers = []; aiHistory = [];
   currentUser = null;
   document.getElementById('main-app').style.display = 'none';
   document.getElementById('bottom-nav').style.display = 'none';
@@ -719,24 +701,153 @@ function doSignOut() {
   setAuthTab('login');
 }
 
-function showApp() {
-  document.getElementById('auth-screen').style.display = 'none';
-  document.getElementById('main-app').style.display = 'block';
-  document.getElementById('bottom-nav').style.display = 'flex';
-  // Update avatar and settings
-  const initials = currentUser ? currentUser.email[0].toUpperCase() : 'G';
-  document.getElementById('avatar-btn').textContent = initials;
-  document.getElementById('set-user-email').textContent = currentUser ? currentUser.email : 'Guest mode';
-  document.getElementById('set-user-status').textContent = currentUser ? 'Signed in' : 'Guest';
-  document.getElementById('signout-btn').style.display = currentUser ? 'block' : 'none';
+// ═══════════════════════════════════════════
+// DATA SYNC
+// ═══════════════════════════════════════════
+async function loadAllData() {
+  if (!currentUser) return;
+  setSyncStatus('syncing');
+  try {
+    const [entriesRes, stockRes, customersRes, profileRes] = await Promise.all([
+      sb.from('entries').select('*').eq('user_id', currentUser.id).order('date', { ascending: false }),
+      sb.from('stock_items').select('*').eq('user_id', currentUser.id),
+      sb.from('customers').select('*').eq('user_id', currentUser.id),
+      sb.from('profiles').select('*').eq('id', currentUser.id).single()
+    ]);
+    if (entriesRes.data) entries = entriesRes.data.map(e => ({ ...e, desc: e.description, type: e.type }));
+    if (stockRes.data) stockItems = stockRes.data.map(s => ({ ...s, low: s.low_alert, price: s.price || 0 }));
+    if (customersRes.data) customers = customersRes.data;
+    if (profileRes.data) {
+      prefs = {
+        bizName: profileRes.data.biz_name || 'My Business',
+        pan: profileRes.data.pan || '',
+        bizType: profileRes.data.biz_type || 'retail',
+        bizAddr: profileRes.data.biz_addr || '',
+        bizPhone: profileRes.data.biz_phone || ''
+      };
+    }
+    setSyncStatus('synced');
+    updateUI();
+  } catch(e) {
+    setSyncStatus('offline');
+  }
+}
+
+async function saveEntry(entry) {
+  if (!currentUser) return;
+  setSyncStatus('syncing');
+  const { error } = await sb.from('entries').insert({
+    user_id: currentUser.id,
+    description: entry.desc,
+    amount: entry.amount,
+    type: entry.type,
+    category: entry.category,
+    date: entry.date,
+    note: entry.note || ''
+  });
+  if (!error) setSyncStatus('synced');
+  else setSyncStatus('offline');
+}
+
+async function deleteEntryDB(id) {
+  if (!currentUser) return;
+  await sb.from('entries').delete().eq('id', id);
+}
+
+async function saveStockItem(item) {
+  if (!currentUser) return;
+  const { data, error } = await sb.from('stock_items').insert({
+    user_id: currentUser.id,
+    name: item.name,
+    qty: item.qty,
+    unit: item.unit,
+    low_alert: item.low || 0,
+    price: item.price || 0
+  }).select().single();
+  if (!error && data) return data.id;
+}
+
+async function updateStockDB(id, qty) {
+  if (!currentUser) return;
+  await sb.from('stock_items').update({ qty }).eq('id', id);
+}
+
+async function deleteStockDB(id) {
+  if (!currentUser) return;
+  await sb.from('stock_items').delete().eq('id', id);
+}
+
+async function saveCustomerDB(customer) {
+  if (!currentUser) return;
+  const { data } = await sb.from('customers').insert({
+    user_id: currentUser.id,
+    name: customer.name,
+    phone: customer.phone,
+    addr: customer.addr
+  }).select().single();
+  if (data) return data.id;
+}
+
+async function deleteCustomerDB(id) {
+  if (!currentUser) return;
+  await sb.from('customers').delete().eq('id', id);
+}
+
+async function saveProfile() {
+  if (!currentUser) return;
+  await sb.from('profiles').upsert({
+    id: currentUser.id,
+    email: currentUser.email,
+    biz_name: prefs.bizName,
+    biz_type: prefs.bizType,
+    biz_addr: prefs.bizAddr,
+    biz_phone: prefs.bizPhone,
+    pan: prefs.pan
+  });
+}
+
+function savePref(key, val) { prefs[key] = val; saveProfile(); }
+
+// ═══════════════════════════════════════════
+// UI UPDATE
+// ═══════════════════════════════════════════
+function updateUI() {
   applyLang();
   updateSummary();
   renderEntries();
   updateFilterLabels();
-  updateBSDate();
   renderStock();
   renderCustomers();
-  updateSettingsDisplay();
+  const bsEl = document.getElementById('today-bs-date');
+  if (bsEl) bsEl.textContent = adToBS(new Date());
+  const bnEl = document.getElementById('biz-name-display');
+  if (bnEl) bnEl.textContent = prefs.bizName || 'My Business';
+  const sbEl = document.getElementById('set-biz-val');
+  if (sbEl) sbEl.textContent = prefs.bizName || '—';
+  const emailEl = document.getElementById('set-user-email');
+  if (emailEl) emailEl.textContent = currentUser?.email || '';
+  const initials = currentUser?.email?.[0]?.toUpperCase() || 'U';
+  const avatarEl = document.getElementById('avatar-btn');
+  if (avatarEl) avatarEl.textContent = initials;
+  const panEl = document.getElementById('set-pan');
+  if (panEl) panEl.value = prefs.pan || '';
+  if (prefs.bizName) { const vbEl = document.getElementById('vat-biz'); if(vbEl && !vbEl.value) vbEl.value = prefs.bizName; }
+  if (prefs.pan) { const vpEl = document.getElementById('vat-pan'); if(vpEl && !vpEl.value) vpEl.value = prefs.pan; }
+}
+
+function showApp() {
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+  document.getElementById('bottom-nav').style.display = 'flex';
+  loadAllData();
+}
+
+function showAuth() {
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('main-app').style.display = 'none';
+  document.getElementById('bottom-nav').style.display = 'none';
 }
 
 // ═══════════════════════════════════════════
@@ -757,21 +868,11 @@ function applyLang() {
     'lbl-cashIn':s.cashIn,'lbl-cashOut':s.cashOut,'lbl-desc':s.desc,
     'lbl-amount':s.amount,'lbl-category':s.category,'lbl-date':s.date,'lbl-note':s.note,
     'add-btn':s.addBtn,'lbl-share':s.share,
-    'r-lbl-income':s.rIncome,'r-lbl-expense':s.rExpense,'r-lbl-balance':s.rBalance,
-    'chart-title':s.chartTitle,'cat-title':s.catTitle,'tax-title':s.taxTitle,
+    'r-lbl-income':s.income,'r-lbl-expense':s.expense,'r-lbl-balance':s.balance,
     'leg-income':s.legIncome,'leg-expense':s.legExpense,
-    'vat-lbl-biz':s.vatBiz,'vat-lbl-pan':s.vatPan,'vat-lbl-buyer':s.vatBuyer,'vat-lbl-bdate':s.vatDate,
-    'vat-lbl-items':s.vatItems,'vat-add-btn':s.vatAddItem,'vat-share-btn':s.vatShare,
     'ai-ask-title':s.aiAskTitle,
-    'nav-lbl-ledger':s.tabLedger,'nav-lbl-report':s.tabReport,'nav-lbl-vat':s.tabVat,
-    'nav-lbl-stock':s.tabStock,'nav-lbl-customers':s.tabCustomers,'nav-lbl-ai':s.tabAi,
-    's-lbl-name':s.sName,'s-lbl-qty':s.sQty,'s-lbl-unit':s.sUnit,'s-lbl-low':s.sLow,'s-lbl-price':s.sPrice,'s-add-btn':s.sAdd,'s-lbl-inventory':s.sInventory,
-    'c-lbl-name':s.cName,'c-lbl-phone':s.cPhone,'c-lbl-addr':s.cAddr,'c-add-btn':s.cAdd,'c-lbl-list':s.cList,
-    'set-lbl-account':s.setAccount,'set-lbl-prefs':s.setPrefs,'set-lbl-data':s.setData,
-    'set-lbl-lang':s.setLang,'set-lbl-pan':s.setPan,'set-lbl-export':s.setExport,'set-lbl-clear':s.setClear,
-    'set-lbl-bizname':s.setBizName,'set-lbl-install':s.setInstall,
-    'signout-btn':s.signOut,'biz-modal-title':s.bizModal,
-    'auth-sub':s.authSub,
+    'nav-lbl-ledger':s.ledger,'nav-lbl-report':s.report,'nav-lbl-vat':s.vat,
+    'nav-lbl-stock':s.stock,'nav-lbl-customers':s.customers,'nav-lbl-ai':s.ai,
   };
   Object.entries(map).forEach(([id, val]) => { const el = document.getElementById(id); if (el) el.textContent = val; });
   updateFilterLabels();
@@ -779,7 +880,7 @@ function applyLang() {
 }
 
 // ═══════════════════════════════════════════
-// TABS & NAVIGATION
+// TABS
 // ═══════════════════════════════════════════
 function setTab(t) {
   activeTab = t;
@@ -791,7 +892,6 @@ function setTab(t) {
   });
   if (t === 'report') renderReport();
   if (t === 'ai') { renderAutoInsights(); renderChips(); }
-  if (t === 'settings') updateSettingsDisplay();
 }
 
 // ═══════════════════════════════════════════
@@ -816,9 +916,8 @@ function setFilter(f) {
 function updateFilterLabels() {
   const s = T[lang];
   ['today','week','month','all'].forEach(k => { const el = document.getElementById('f-'+k); if(el) el.textContent = s[k]; });
-  const labels = { today:s.today, week:s.week, month:s.month, all:s.all };
   const lh = document.getElementById('lbl-history');
-  if (lh) lh.textContent = s.history + ' · ' + labels[filter];
+  if (lh) lh.textContent = s.history + ' · ' + { today:s.today, week:s.week, month:s.month, all:s.all }[filter];
 }
 
 function setType(tp) {
@@ -827,30 +926,33 @@ function setType(tp) {
   document.getElementById('btn-out').className = 'type-btn' + (tp === 'out' ? ' active out' : '');
 }
 
-function addEntry() {
+async function addEntry() {
   const desc = document.getElementById('desc').value.trim();
   const amount = parseFloat(document.getElementById('amount').value);
   const category = document.getElementById('category').value;
   const date = document.getElementById('date').value || todayStr();
   const note = document.getElementById('note').value.trim();
   if (!desc || !amount || amount <= 0) return;
-  entries.unshift({ id: Date.now(), desc, amount, type: entryType, category, date, note });
-  save();
+  const entry = { id: Date.now(), desc, amount, type: entryType, category, date, note };
+  entries.unshift(entry);
   document.getElementById('desc').value = '';
   document.getElementById('amount').value = '';
   document.getElementById('note').value = '';
   updateSummary(); renderEntries(); showToast(T[lang].saved);
+  await saveEntry(entry);
+  await loadAllData(); // refresh to get real DB id
 }
 
-function deleteEntry(id) {
+async function deleteEntry(id) {
   entries = entries.filter(e => e.id !== id);
-  save(); updateSummary(); renderEntries(); showToast(T[lang].deleted);
+  updateSummary(); renderEntries(); showToast(T[lang].deleted);
+  await deleteEntryDB(id);
 }
 
 function updateSummary() {
   const f = getFilteredEntries();
-  const income = f.filter(e => e.type === 'in').reduce((s, e) => s + e.amount, 0);
-  const expense = f.filter(e => e.type === 'out').reduce((s, e) => s + e.amount, 0);
+  const income = f.filter(e => e.type === 'in').reduce((s, e) => s + Number(e.amount), 0);
+  const expense = f.filter(e => e.type === 'out').reduce((s, e) => s + Number(e.amount), 0);
   document.getElementById('val-income').textContent = fmt(income);
   document.getElementById('val-expense').textContent = fmt(expense);
   const bal = income - expense;
@@ -862,18 +964,18 @@ function updateSummary() {
 function renderEntries() {
   const el = document.getElementById('entries');
   const filtered = getFilteredEntries();
-  if (!filtered.length) { el.innerHTML = '<div class="empty">' + T[lang].empty + '</div>'; return; }
+  if (!filtered.length) { el.innerHTML = '<div class="empty">' + T[lang].noEntries + '</div>'; return; }
   el.innerHTML = filtered.map(e => `
     <div class="entry">
       <div class="entry-left">
         <div class="entry-dot ${e.type}"></div>
         <div style="min-width:0;">
-          <div class="entry-desc">${e.desc}</div>
+          <div class="entry-desc">${e.desc || e.description}</div>
           <div class="entry-meta">${e.category}${e.note ? ' · ' + e.note : ''} · ${e.date}</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
-        <span class="entry-amount ${e.type}">${e.type==='in'?'+':'−'}${fmt(e.amount)}</span>
+        <span class="entry-amount ${e.type}">${e.type==='in'?'+':'−'}${fmt(Number(e.amount))}</span>
         <button class="entry-del" onclick="deleteEntry(${e.id})">✕</button>
       </div>
     </div>`).join('');
@@ -889,8 +991,8 @@ function renderReport() {
     const d = new Date(now); d.setDate(now.getDate() - i);
     const ds = d.toISOString().split('T')[0];
     const label = d.toLocaleDateString('en-IN', { weekday: 'short' }).slice(0, 2);
-    const inc = entries.filter(e => e.date === ds && e.type === 'in').reduce((s, e) => s + e.amount, 0);
-    const exp = entries.filter(e => e.date === ds && e.type === 'out').reduce((s, e) => s + e.amount, 0);
+    const inc = entries.filter(e => e.date === ds && e.type === 'in').reduce((s, e) => s + Number(e.amount), 0);
+    const exp = entries.filter(e => e.date === ds && e.type === 'out').reduce((s, e) => s + Number(e.amount), 0);
     days.push({ label, inc, exp });
   }
   const maxVal = Math.max(...days.map(d => Math.max(d.inc, d.exp)), 1);
@@ -903,60 +1005,45 @@ function renderReport() {
       ${!d.inc && !d.exp ? `<div class="bar-seg" style="height:4px;background:var(--border);"></div>` : ''}
     </div><div class="bar-label">${d.label}</div></div>`;
   }).join('');
-
-  const ai = entries.reduce((s, e) => e.type === 'in' ? s + e.amount : s, 0);
-  const ae = entries.reduce((s, e) => e.type === 'out' ? s + e.amount : s, 0);
+  const ai = entries.reduce((s, e) => e.type === 'in' ? s + Number(e.amount) : s, 0);
+  const ae = entries.reduce((s, e) => e.type === 'out' ? s + Number(e.amount) : s, 0);
   document.getElementById('r-val-income').textContent = fmt(ai);
   document.getElementById('r-val-expense').textContent = fmt(ae);
   const rb = ai - ae;
   const rbEl = document.getElementById('r-val-balance');
   rbEl.textContent = fmt(Math.abs(rb));
   rbEl.style.color = rb >= 0 ? 'var(--green)' : 'var(--red)';
-
-  // Category chart
   const catTotals = {};
-  entries.filter(e => e.type === 'out').forEach(e => { catTotals[e.category] = (catTotals[e.category] || 0) + e.amount; });
+  entries.filter(e => e.type === 'out').forEach(e => { catTotals[e.category] = (catTotals[e.category] || 0) + Number(e.amount); });
   const cats = Object.entries(catTotals).sort((a, b) => b[1] - a[1]).slice(0, 5);
   const maxCat = Math.max(...cats.map(c => c[1]), 1);
-  document.getElementById('cat-chart').innerHTML = !cats.length
-    ? '<div style="padding:0.5rem 0;color:var(--text2);font-size:13px;">No expense data yet.</div>'
-    : cats.map(([cat, val]) => `
-      <div style="margin-bottom:8px;">
-        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:3px;"><span>${cat}</span><span>${fmt(val)}</span></div>
-        <div style="height:6px;background:var(--surface2);border-radius:3px;">
-          <div style="height:100%;width:${Math.round((val/maxCat)*100)}%;background:var(--red);border-radius:3px;"></div>
-        </div>
-      </div>`).join('');
-
-  // Monthly tax summary
+  document.getElementById('cat-chart').innerHTML = !cats.length ? '<div style="color:var(--text2);font-size:13px;padding:0.5rem 0;">No expense data yet.</div>'
+    : cats.map(([cat, val]) => `<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:3px;"><span>${cat}</span><span>${fmt(val)}</span></div><div style="height:6px;background:var(--surface2);border-radius:3px;"><div style="height:100%;width:${Math.round((val/maxCat)*100)}%;background:var(--red);border-radius:3px;"></div></div></div>`).join('');
   const monthlyData = {};
   entries.forEach(e => {
     const d = new Date(e.date);
     const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
     if (!monthlyData[key]) monthlyData[key] = { income: 0, expense: 0 };
-    if (e.type === 'in') monthlyData[key].income += e.amount;
-    else monthlyData[key].expense += e.amount;
+    if (e.type === 'in') monthlyData[key].income += Number(e.amount);
+    else monthlyData[key].expense += Number(e.amount);
   });
   const months = Object.entries(monthlyData).sort((a,b) => b[0].localeCompare(a[0])).slice(0, 6);
   const taxEl = document.getElementById('tax-report');
-  if (!months.length) { taxEl.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:0.5rem 0;">No data yet.</div>'; return; }
-  taxEl.innerHTML = months.map(([key, d]) => {
-    const [yr, mo] = key.split('-');
-    const monthName = new Date(yr, mo-1).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
-    const profit = d.income - d.expense;
-    const vat = d.income * 0.13;
-    return `
-      <div class="tax-month">${monthName}</div>
-      <div class="tax-row"><span>Total Sales</span><span style="color:var(--green)">${fmt(d.income)}</span></div>
-      <div class="tax-row"><span>Total Expenses</span><span style="color:var(--red)">${fmt(d.expense)}</span></div>
-      <div class="tax-row"><span>Net Profit</span><span style="color:${profit>=0?'var(--green)':'var(--red)'}">${fmt(Math.abs(profit))}${profit<0?' (loss)':''}</span></div>
-      <div class="tax-row"><span>VAT Collected (13%)</span><span>${fmt(vat)}</span></div>
-    `;
-  }).join('');
+  taxEl.innerHTML = !months.length ? '<div style="color:var(--text2);font-size:13px;padding:0.5rem 0;">No data yet.</div>'
+    : months.map(([key, d]) => {
+      const [yr, mo] = key.split('-');
+      const monthName = new Date(yr, mo-1).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+      const profit = d.income - d.expense;
+      return `<div class="tax-month">${monthName}</div>
+        <div class="tax-row"><span>Total Sales</span><span style="color:var(--green)">${fmt(d.income)}</span></div>
+        <div class="tax-row"><span>Total Expenses</span><span style="color:var(--red)">${fmt(d.expense)}</span></div>
+        <div class="tax-row"><span>Net Profit</span><span style="color:${profit>=0?'var(--green)':'var(--red)'}">${fmt(Math.abs(profit))}${profit<0?' (loss)':''}</span></div>
+        <div class="tax-row"><span>VAT Collected (13%)</span><span>${fmt(d.income * 0.13)}</span></div>`;
+    }).join('');
 }
 
 // ═══════════════════════════════════════════
-// VAT BILLS
+// VAT
 // ═══════════════════════════════════════════
 function addVatItem() { vatItems.push({ id: Date.now(), name: '', rate: 0 }); renderVatItems(); }
 function removeVatItem(id) { vatItems = vatItems.filter(i => i.id !== id); renderVatItems(); updateBillPreview(); }
@@ -1005,34 +1092,33 @@ function shareVatWhatsApp() {
   const subtotal = vatItems.reduce((s, i) => s + i.rate, 0);
   const vat = subtotal * 0.13; const total = subtotal + vat;
   const billNo = 'INV-' + Date.now().toString().slice(-5);
-  let lines = ['🧾 *VAT Bill*', '', '*' + biz + '*', 'PAN: ' + pan, 'Bill No: ' + billNo + ' | ' + date, 'Buyer: ' + buyer, ''];
-  vatItems.forEach(i => lines.push('• ' + (i.name||'Item') + ' — ' + fmt(i.rate)));
-  lines.push('', 'Subtotal: ' + fmt(subtotal), 'VAT (13%): +' + fmt(vat), '*Total: ' + fmt(total) + '*', '', '_Hisab-Kitab_');
-  window.open('https://wa.me/?text=' + encodeURIComponent(lines.join('\n')), '_blank');
+  let lines = ['🧾 *VAT Bill*','','*'+biz+'*','PAN: '+pan,'Bill No: '+billNo+' | '+date,'Buyer: '+buyer,''];
+  vatItems.forEach(i => lines.push('• '+(i.name||'Item')+' — '+fmt(i.rate)));
+  lines.push('','Subtotal: '+fmt(subtotal),'VAT (13%): +'+fmt(vat),'*Total: '+fmt(total)+'*','','_Hisab-Kitab_');
+  window.open('https://wa.me/?text='+encodeURIComponent(lines.join('\n')),'_blank');
 }
 
 // ═══════════════════════════════════════════
 // STOCK
 // ═══════════════════════════════════════════
-function addStockItem() {
+async function addStockItem() {
   const name = document.getElementById('stock-name').value.trim();
   const qty = parseFloat(document.getElementById('stock-qty').value) || 0;
   const unit = document.getElementById('stock-unit').value;
   const low = parseFloat(document.getElementById('stock-low').value) || 0;
   const price = parseFloat(document.getElementById('stock-price').value) || 0;
   if (!name) return;
-  stockItems.push({ id: Date.now(), name, qty, unit, low, price, history: [] });
-  save();
+  const item = { id: Date.now(), name, qty, unit, low, price };
+  stockItems.push(item);
+  renderStock(); showToast(T[lang].saved);
   document.getElementById('stock-name').value = '';
   document.getElementById('stock-qty').value = '';
   document.getElementById('stock-low').value = '';
   document.getElementById('stock-price').value = '';
-  renderStock(); showToast(T[lang].saved);
+  const dbId = await saveStockItem(item);
+  if (dbId) { item.id = dbId; }
 }
-function deleteStockItem(id) {
-  stockItems = stockItems.filter(i => i.id !== id);
-  save(); renderStock(); showToast(T[lang].deleted);
-}
+
 function openStockEdit(id) {
   const item = stockItems.find(i => i.id === id);
   if (!item) return;
@@ -1041,22 +1127,29 @@ function openStockEdit(id) {
   document.getElementById('edit-stock-adj').value = '';
   document.getElementById('stock-edit-modal').style.display = 'flex';
 }
-function updateStock() {
+
+async function updateStock() {
   const id = parseInt(document.getElementById('edit-stock-id').value);
   const adj = parseFloat(document.getElementById('edit-stock-adj').value);
-  const reason = document.getElementById('edit-stock-reason').value;
   if (isNaN(adj)) return;
   const item = stockItems.find(i => i.id === id);
   if (!item) return;
   item.qty = Math.max(0, item.qty + adj);
-  item.history.push({ adj, reason, date: todayStr() });
-  save(); renderStock();
+  renderStock();
   document.getElementById('stock-edit-modal').style.display = 'none';
   showToast(T[lang].updated);
+  await updateStockDB(id, item.qty);
 }
+
+async function deleteStockItem(id) {
+  stockItems = stockItems.filter(i => i.id !== id);
+  renderStock(); showToast(T[lang].deleted);
+  await deleteStockDB(id);
+}
+
 function renderStock() {
   const el = document.getElementById('stock-list');
-  const lowCount = stockItems.filter(i => i.qty <= i.low && i.low > 0).length;
+  const lowCount = stockItems.filter(i => i.low > 0 && i.qty <= i.low).length;
   const lce = document.getElementById('low-stock-count');
   if (lce) lce.textContent = lowCount > 0 ? `⚠ ${lowCount} ${T[lang].lowStock}` : '';
   if (!stockItems.length) { el.innerHTML = '<div class="empty">' + T[lang].noStock + '</div>'; return; }
@@ -1064,14 +1157,14 @@ function renderStock() {
     const isLow = item.low > 0 && item.qty <= item.low;
     const isWarn = item.low > 0 && item.qty <= item.low * 1.5 && !isLow;
     const status = isLow ? 'low' : isWarn ? 'warn' : 'ok';
-    const statusLabel = isLow ? '⚠ Low' : isWarn ? '~ Warning' : '✓ OK';
+    const statusLabel = isLow ? '⚠ Low' : isWarn ? '~ Warn' : '✓ OK';
     return `<div class="stock-item">
       <div>
-        <div class="stock-name">${item.name} <span class="badge ${status}">${statusLabel}</span></div>
-        <div class="stock-meta">${item.unit}${item.price ? ' · Cost: ' + fmt(item.price) : ''}${item.low ? ' · Min: ' + item.low : ''}</div>
+        <div class="stock-name">${item.name}<span class="badge ${status}">${statusLabel}</span></div>
+        <div class="stock-meta">${item.unit}${item.price ? ' · Cost: '+fmt(item.price) : ''}${item.low ? ' · Min: '+item.low : ''}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
-        <div class="stock-qty ${isLow ? 'low' : 'ok'}">${item.qty}</div>
+        <div class="stock-qty ${isLow?'low':'ok'}" style="color:${isLow?'var(--red)':'var(--green)'}">${item.qty}</div>
         <button class="icon-btn" onclick="openStockEdit(${item.id})" style="padding:4px 8px;font-size:11px;">Edit</button>
         <button class="entry-del" onclick="deleteStockItem(${item.id})">✕</button>
       </div>
@@ -1082,23 +1175,27 @@ function renderStock() {
 // ═══════════════════════════════════════════
 // CUSTOMERS
 // ═══════════════════════════════════════════
-function addCustomer() {
+async function addCustomer() {
   const name = document.getElementById('cust-name').value.trim();
   const phone = document.getElementById('cust-phone').value.trim();
   const addr = document.getElementById('cust-addr').value.trim();
   if (!name) return;
-  customers.push({ id: Date.now(), name, phone, addr, since: todayStr() });
-  save();
+  const customer = { id: Date.now(), name, phone, addr };
+  customers.push(customer);
+  renderCustomers(); showToast(T[lang].saved);
   document.getElementById('cust-name').value = '';
   document.getElementById('cust-phone').value = '';
   document.getElementById('cust-addr').value = '';
-  renderCustomers(); showToast(T[lang].saved);
-  document.getElementById('cust-count').textContent = customers.length + ' total';
+  const dbId = await saveCustomerDB(customer);
+  if (dbId) customer.id = dbId;
 }
-function deleteCustomer(id) {
+
+async function deleteCustomer(id) {
   customers = customers.filter(c => c.id !== id);
-  save(); renderCustomers(); showToast(T[lang].deleted);
+  renderCustomers(); showToast(T[lang].deleted);
+  await deleteCustomerDB(id);
 }
+
 function renderCustomers() {
   const el = document.getElementById('customer-list');
   const cc = document.getElementById('cust-count');
@@ -1110,58 +1207,58 @@ function renderCustomers() {
         <div class="customer-avatar">${c.name[0].toUpperCase()}</div>
         <div>
           <div class="customer-name">${c.name}</div>
-          <div class="customer-meta">${c.phone ? c.phone : ''}${c.addr ? ' · ' + c.addr : ''}</div>
+          <div class="customer-meta">${c.phone||''}${c.addr?' · '+c.addr:''}</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
-        ${c.phone ? `<a href="tel:${c.phone}" class="icon-btn" style="text-decoration:none;">📞</a>` : ''}
-        ${c.phone ? `<a href="https://wa.me/977${c.phone}" target="_blank" class="icon-btn green" style="text-decoration:none;">WA</a>` : ''}
+        ${c.phone?`<a href="tel:${c.phone}" class="icon-btn" style="text-decoration:none;">📞</a>`:''}
+        ${c.phone?`<a href="https://wa.me/977${c.phone}" target="_blank" class="icon-btn green" style="text-decoration:none;">WA</a>`:''}
         <button class="entry-del" onclick="deleteCustomer(${c.id})">✕</button>
       </div>
     </div>`).join('');
 }
 
 // ═══════════════════════════════════════════
-// AI ADVISOR
+// AI
 // ═══════════════════════════════════════════
 function buildDataSummary() {
-  const income = entries.filter(e => e.type === 'in').reduce((s, e) => s + e.amount, 0);
-  const expense = entries.filter(e => e.type === 'out').reduce((s, e) => s + e.amount, 0);
+  const income = entries.filter(e => e.type === 'in').reduce((s, e) => s + Number(e.amount), 0);
+  const expense = entries.filter(e => e.type === 'out').reduce((s, e) => s + Number(e.amount), 0);
   const catTotals = {};
-  entries.filter(e => e.type === 'out').forEach(e => { catTotals[e.category] = (catTotals[e.category] || 0) + e.amount; });
-  const topCats = Object.entries(catTotals).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  const thisMonth = entries.filter(e => { const d = new Date(e.date); const n = new Date(); return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear(); });
-  const mIncome = thisMonth.filter(e => e.type === 'in').reduce((s, e) => s + e.amount, 0);
-  const mExpense = thisMonth.filter(e => e.type === 'out').reduce((s, e) => s + e.amount, 0);
-  const lowStock = stockItems.filter(i => i.low > 0 && i.qty <= i.low).map(i => i.name);
+  entries.filter(e => e.type === 'out').forEach(e => { catTotals[e.category] = (catTotals[e.category]||0) + Number(e.amount); });
+  const topCats = Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const thisMonth = entries.filter(e => { const d=new Date(e.date),n=new Date(); return d.getMonth()===n.getMonth()&&d.getFullYear()===n.getFullYear(); });
+  const mIncome = thisMonth.filter(e=>e.type==='in').reduce((s,e)=>s+Number(e.amount),0);
+  const mExpense = thisMonth.filter(e=>e.type==='out').reduce((s,e)=>s+Number(e.amount),0);
+  const lowStock = stockItems.filter(i=>i.low>0&&i.qty<=i.low).map(i=>i.name);
   return `Business: ${prefs.bizName} (${prefs.bizType})
-All-time income: NPR ${Math.round(income)}, expense: NPR ${Math.round(expense)}, balance: NPR ${Math.round(income-expense)}
+All-time: income NPR ${Math.round(income)}, expense NPR ${Math.round(expense)}, balance NPR ${Math.round(income-expense)}
 This month: income NPR ${Math.round(mIncome)}, expense NPR ${Math.round(mExpense)}, profit NPR ${Math.round(mIncome-mExpense)}
-Top expenses: ${topCats.map(([c,v]) => c+' NPR '+Math.round(v)).join(', ') || 'none'}
-Total transactions: ${entries.length}, customers: ${customers.length}, stock items: ${stockItems.length}
-Low stock alerts: ${lowStock.length ? lowStock.join(', ') : 'none'}`;
+Top expenses: ${topCats.map(([c,v])=>c+' NPR '+Math.round(v)).join(', ')||'none'}
+Transactions: ${entries.length}, customers: ${customers.length}, stock items: ${stockItems.length}
+Low stock: ${lowStock.length?lowStock.join(', '):'none'}`;
 }
 
 function getAutoInsights() {
   if (!entries.length) return [];
-  const income = entries.filter(e => e.type === 'in').reduce((s, e) => s + e.amount, 0);
-  const expense = entries.filter(e => e.type === 'out').reduce((s, e) => s + e.amount, 0);
+  const income = entries.filter(e=>e.type==='in').reduce((s,e)=>s+Number(e.amount),0);
+  const expense = entries.filter(e=>e.type==='out').reduce((s,e)=>s+Number(e.amount),0);
   const catTotals = {};
-  entries.filter(e => e.type === 'out').forEach(e => { catTotals[e.category] = (catTotals[e.category] || 0) + e.amount; });
-  const topCat = Object.entries(catTotals).sort((a, b) => b[1] - a[1])[0];
+  entries.filter(e=>e.type==='out').forEach(e=>{catTotals[e.category]=(catTotals[e.category]||0)+Number(e.amount);});
+  const topCat = Object.entries(catTotals).sort((a,b)=>b[1]-a[1])[0];
   const insights = [];
-  const margin = income > 0 ? ((income - expense) / income * 100) : 0;
+  const margin = income > 0 ? ((income-expense)/income*100) : 0;
   if (income > 0) {
-    if (margin > 20) insights.push({ icon: '📈', title: 'Healthy profit margin', body: `You're keeping ${Math.round(margin)}% of revenue as profit. Well managed!` });
-    else if (margin > 0) insights.push({ icon: '⚠️', title: 'Thin margin', body: `Only ${Math.round(margin)}% profit margin. Consider reducing expenses.` });
-    else insights.push({ icon: '🔴', title: 'Running at a loss', body: `Expenses exceed income by ${fmt(Math.abs(income-expense))}. Review costs urgently.` });
+    if (margin > 20) insights.push({icon:'📈',title:'Healthy profit margin',body:`You're keeping ${Math.round(margin)}% of revenue as profit. Well managed!`});
+    else if (margin > 0) insights.push({icon:'⚠️',title:'Thin margin',body:`Only ${Math.round(margin)}% profit margin. Consider reducing expenses.`});
+    else insights.push({icon:'🔴',title:'Running at a loss',body:`Expenses exceed income by ${fmt(Math.abs(income-expense))}. Review costs urgently.`});
   }
-  if (topCat && expense > 0) insights.push({ icon: '💸', title: `${topCat[0]} is your biggest cost`, body: `${Math.round(topCat[1]/expense*100)}% of expenses. Is this optimised?` });
-  const lowStock = stockItems.filter(i => i.low > 0 && i.qty <= i.low);
-  if (lowStock.length) insights.push({ icon: '📦', title: `${lowStock.length} item${lowStock.length > 1 ? 's' : ''} running low`, body: `Reorder soon: ${lowStock.map(i => i.name).join(', ')}` });
-  const todayInc = entries.filter(e => e.date === todayStr() && e.type === 'in').reduce((s, e) => s + e.amount, 0);
-  if (todayInc > 0) insights.push({ icon: '✅', title: "Today's earnings", body: `You've earned ${fmt(todayInc)} today. Keep it up!` });
-  return insights.slice(0, 3);
+  if (topCat && expense > 0) insights.push({icon:'💸',title:`${topCat[0]} is your biggest cost`,body:`${Math.round(topCat[1]/expense*100)}% of expenses. Is this optimised?`});
+  const lowStock = stockItems.filter(i=>i.low>0&&i.qty<=i.low);
+  if (lowStock.length) insights.push({icon:'📦',title:`${lowStock.length} item${lowStock.length>1?'s':''} running low`,body:`Reorder: ${lowStock.map(i=>i.name).join(', ')}`});
+  const todayInc = entries.filter(e=>e.date===todayStr()&&e.type==='in').reduce((s,e)=>s+Number(e.amount),0);
+  if (todayInc > 0) insights.push({icon:'✅',title:"Today's earnings",body:`You've earned ${fmt(todayInc)} today!`});
+  return insights.slice(0,3);
 }
 
 function renderAutoInsights() {
@@ -1169,12 +1266,12 @@ function renderAutoInsights() {
   const el = document.getElementById('auto-insights');
   el.innerHTML = !insights.length
     ? '<div class="insight-card"><div class="insight-body">Add transactions in Ledger to unlock AI insights.</div></div>'
-    : insights.map(i => `<div class="insight-card"><div class="insight-icon">${i.icon}</div><div class="insight-title">${i.title}</div><div class="insight-body">${i.body}</div></div>`).join('');
+    : insights.map(i=>`<div class="insight-card"><div class="insight-icon">${i.icon}</div><div class="insight-title">${i.title}</div><div class="insight-body">${i.body}</div></div>`).join('');
 }
 
 function renderChips() {
-  document.getElementById('ai-chips').innerHTML = T[lang].chips.map(c =>
-    `<button class="ai-chip" onclick="chipAsk('${c.replace(/'/g,"\\'")}' )">${c}</button>`
+  document.getElementById('ai-chips').innerHTML = T[lang].chips.map(c=>
+    `<button class="ai-chip" onclick="chipAsk('${c.replace(/'/g,"\\'")}')">${c}</button>`
   ).join('');
 }
 
@@ -1182,154 +1279,129 @@ function chipAsk(q) { document.getElementById('ai-input').value = q; askAI(); }
 
 async function askAI() {
   const input = document.getElementById('ai-input');
-  const q = input.value.trim();
-  if (!q) return;
+  const q = input.value.trim(); if (!q) return;
   input.value = '';
   const btn = document.getElementById('ai-send-btn');
   btn.disabled = true; btn.textContent = '...';
-  aiHistory.push({ role: 'user', content: q });
+  aiHistory.push({role:'user',content:q});
   renderAIMessages();
   const msgsEl = document.getElementById('ai-messages');
   const loadingDiv = document.createElement('div');
-  loadingDiv.className = 'ai-msg loading';
-  loadingDiv.textContent = 'Thinking...';
+  loadingDiv.className = 'ai-msg loading'; loadingDiv.textContent = 'Thinking...';
   msgsEl.appendChild(loadingDiv);
-  const systemPrompt = `You are a friendly, practical business advisor for a small Nepali business owner. Give concise, specific, actionable advice in 2-4 sentences. Use रू for currency amounts. Business data:\n${buildDataSummary()}\nRespond in ${lang === 'ne' ? 'Nepali' : 'English'}.`;
-  const fullPrompt = systemPrompt + '\n\nConversation:\n' +
-    aiHistory.slice(0,-1).map(m => (m.role==='user'?'User: ':'Advisor: ') + m.content).join('\n') +
-    '\n\nUser: ' + q;
+  const systemPrompt = `You are a friendly, practical business advisor for a small Nepali business owner. Give concise, specific, actionable advice in 2-4 sentences. Use रू for currency. Data:\n${buildDataSummary()}\nRespond in ${lang==='ne'?'Nepali':'English'}.`;
+  const fullPrompt = systemPrompt+'\n\nConversation:\n'+aiHistory.slice(0,-1).map(m=>(m.role==='user'?'User: ':'Advisor: ')+m.content).join('\n')+'\n\nUser: '+q;
   try {
-    const res = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: fullPrompt }) });
+    const res = await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:fullPrompt})});
     const data = await res.json();
     const reply = data.reply || 'Sorry, could not get a response.';
-    aiHistory.push({ role: 'assistant', content: reply });
-    loadingDiv.remove();
-    renderAIMessages();
-  } catch(e) {
-    loadingDiv.textContent = 'Could not connect. Check your internet.';
-  }
+    aiHistory.push({role:'assistant',content:reply});
+    loadingDiv.remove(); renderAIMessages();
+  } catch(e) { loadingDiv.textContent = 'Could not connect.'; }
   btn.disabled = false; btn.textContent = 'Ask ↗';
 }
 
 function renderAIMessages() {
   const el = document.getElementById('ai-messages');
-  el.innerHTML = aiHistory.map(m => `<div class="ai-msg ${m.role}">${m.content.replace(/\n/g,'<br>')}</div>`).join('');
+  el.innerHTML = aiHistory.map(m=>`<div class="ai-msg ${m.role}">${m.content.replace(/\n/g,'<br>')}</div>`).join('');
   el.scrollTop = el.scrollHeight;
 }
 
 // ═══════════════════════════════════════════
 // SETTINGS
 // ═══════════════════════════════════════════
-function updateSettingsDisplay() {
-  const bnEl = document.getElementById('biz-name-display');
-  if (bnEl) bnEl.textContent = prefs.bizName || 'My Business';
-  const sbEl = document.getElementById('set-biz-val');
-  if (sbEl) sbEl.textContent = prefs.bizName || '—';
-  const panEl = document.getElementById('set-pan');
-  if (panEl) panEl.value = prefs.pan || '';
-}
-
 function showBizModal() {
-  document.getElementById('modal-biz-name').value = prefs.bizName || '';
-  document.getElementById('modal-biz-type').value = prefs.bizType || 'retail';
-  document.getElementById('modal-biz-addr').value = prefs.bizAddr || '';
-  document.getElementById('modal-biz-phone').value = prefs.bizPhone || '';
+  document.getElementById('modal-biz-name').value = prefs.bizName||'';
+  document.getElementById('modal-biz-type').value = prefs.bizType||'retail';
+  document.getElementById('modal-biz-addr').value = prefs.bizAddr||'';
+  document.getElementById('modal-biz-phone').value = prefs.bizPhone||'';
   document.getElementById('biz-modal').style.display = 'flex';
 }
 function closeBizModal() { document.getElementById('biz-modal').style.display = 'none'; }
-function saveBizProfile() {
-  prefs.bizName = document.getElementById('modal-biz-name').value.trim() || prefs.bizName;
+async function saveBizProfile() {
+  prefs.bizName = document.getElementById('modal-biz-name').value.trim()||prefs.bizName;
   prefs.bizType = document.getElementById('modal-biz-type').value;
   prefs.bizAddr = document.getElementById('modal-biz-addr').value.trim();
   prefs.bizPhone = document.getElementById('modal-biz-phone').value.trim();
-  save(); updateSettingsDisplay();
   closeBizModal(); showToast(T[lang].saved);
+  updateUI(); await saveProfile();
 }
 
 function exportAllData() {
   const data = { entries, stockItems, customers, prefs, exportDate: new Date().toISOString() };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'hisab-kitab-export-' + todayStr() + '.json';
+  a.download = 'hisab-kitab-export-'+todayStr()+'.json';
   a.click();
 }
 
 function clearAllData() {
-  if (!confirm('Delete ALL data? This cannot be undone.')) return;
-  entries = []; stockItems = []; customers = []; aiHistory = [];
-  save(); updateSummary(); renderEntries(); renderStock(); renderCustomers();
+  if (!confirm('Delete ALL your data? This cannot be undone.')) return;
+  entries=[]; stockItems=[]; customers=[]; aiHistory=[];
+  updateSummary(); renderEntries(); renderStock(); renderCustomers();
   showToast('All data cleared.'); setTab('ledger');
 }
 
 function exportPDF() {
-  document.getElementById('print-date').textContent = 'Report generated: ' + new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+  document.getElementById('print-date').textContent = 'Report: '+new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
   window.print();
 }
 
 function shareWhatsApp() {
   const f = getFilteredEntries();
-  const income = f.filter(e => e.type === 'in').reduce((s, e) => s + e.amount, 0);
-  const expense = f.filter(e => e.type === 'out').reduce((s, e) => s + e.amount, 0);
-  const bal = income - expense;
-  let lines = ['📒 *Hisab-Kitab Report*', '📅 ' + new Date().toLocaleDateString('en-IN'), `🏪 ${prefs.bizName}`, '', '✅ Income: ' + fmt(income), '❌ Expense: ' + fmt(expense), '💰 Balance: ' + fmt(Math.abs(bal)) + (bal < 0 ? ' (loss)' : ''), '', '*Entries:*'];
-  f.slice(0, 10).forEach(e => lines.push((e.type === 'in' ? '➕' : '➖') + ' ' + e.desc + ' — ' + fmt(e.amount)));
-  if (f.length > 10) lines.push('...and ' + (f.length - 10) + ' more');
-  lines.push('', '_Sent from Hisab-Kitab_');
-  window.open('https://wa.me/?text=' + encodeURIComponent(lines.join('\n')), '_blank');
+  const income = f.filter(e=>e.type==='in').reduce((s,e)=>s+Number(e.amount),0);
+  const expense = f.filter(e=>e.type==='out').reduce((s,e)=>s+Number(e.amount),0);
+  const bal = income-expense;
+  let lines = ['📒 *Hisab-Kitab Report*','📅 '+new Date().toLocaleDateString('en-IN'),`🏪 ${prefs.bizName}`,'','✅ Income: '+fmt(income),'❌ Expense: '+fmt(expense),'💰 Balance: '+fmt(Math.abs(bal))+(bal<0?' (loss)':''),'','*Entries:*'];
+  f.slice(0,10).forEach(e=>lines.push((e.type==='in'?'➕':'➖')+' '+(e.desc||e.description)+' — '+fmt(Number(e.amount))));
+  if(f.length>10) lines.push('...and '+(f.length-10)+' more');
+  lines.push('','_Sent from Hisab-Kitab_');
+  window.open('https://wa.me/?text='+encodeURIComponent(lines.join('\n')),'_blank');
 }
 
 // ═══════════════════════════════════════════
 // PWA
 // ═══════════════════════════════════════════
 window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredInstallPrompt = e;
+  e.preventDefault(); deferredInstallPrompt = e;
   const row = document.getElementById('install-row');
   if (row) row.style.display = 'flex';
 });
 function installPWA() {
   if (!deferredInstallPrompt) return;
   deferredInstallPrompt.prompt();
-  deferredInstallPrompt.userChoice.then(() => { deferredInstallPrompt = null; });
+  deferredInstallPrompt.userChoice.then(()=>{deferredInstallPrompt=null;});
 }
 
 // ═══════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════
-load();
 document.getElementById('date').valueAsDate = new Date();
 document.getElementById('vat-date').valueAsDate = new Date();
-vatItems = [{ id: 1, name: '', rate: 0 }];
 renderVatItems(); updateBillPreview();
 ['vat-biz','vat-pan','vat-buyer','vat-date'].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.addEventListener('input', updateBillPreview);
 });
-document.getElementById('ai-input').addEventListener('keydown', e => { if (e.key === 'Enter') askAI(); });
+document.getElementById('ai-input').addEventListener('keydown', e => { if(e.key==='Enter') askAI(); });
 
-// Auto-fill PAN in VAT from prefs
-setTimeout(() => {
-  if (prefs.pan) document.getElementById('vat-pan').value = prefs.pan;
-  if (prefs.bizName) document.getElementById('vat-biz').value = prefs.bizName;
-}, 100);
+// Apply language
+setLang(lang);
 
-// Check if already logged in
-const savedSession = localStorage.getItem('hk_session');
-if (savedSession) {
-  try { currentUser = JSON.parse(savedSession); showApp(); }
-  catch(e) { /* show auth */ }
-} else {
-  // Apply translations to auth screen
-  document.getElementById('auth-sub').textContent = T[lang].authSub;
-}
+// Auth state listener
+sb.auth.onAuthStateChange((event, session) => {
+  if (session?.user) {
+    currentUser = session.user;
+    showApp();
+  } else {
+    showAuth();
+  }
+});
 
-// Apply language to auth buttons
-document.getElementById('auth-btn').textContent = T[lang].signIn;
-
-// Service worker for offline
+// Service worker
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(() => {});
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
 }
 </script>
 </body>
