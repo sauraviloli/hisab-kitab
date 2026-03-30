@@ -561,8 +561,11 @@
 // SUPABASE
 // ═══════════════════════════════════════════
 const SUPABASE_URL = 'https://yjghsymqopqfezwdjhki.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqZ2hzeW1xb3BxZmV6d2RqaGtpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3ODMwMzksImV4cCI6MjA5MDM1OTAzOX0.Etp-cAJeDHF4zILcteEF8agdJaKuGPWa2cjCtZ9HiDc';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqZ2hzeW1xb3BxZmV6d2RqaGtpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3ODMwMzksImV4cCI6MjA5MDM1OTAzOX0.Etp-cAJeDHF4zILcteEF8agdJaKuGPWa2cjCtZ9HiDc';
+function getToken() { return localStorage.getItem('hk_token') || SUPABASE_ANON; }
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+  global: { headers: { get Authorization() { return 'Bearer ' + getToken(); } } }
+});
 
 // ═══════════════════════════════════════════
 // STATE
@@ -666,18 +669,28 @@ async function doAuth() {
   if (!email || !password) { errEl.textContent = 'Please fill in all fields.'; return; }
   btn.disabled = true; btn.textContent = 'Please wait...'; errEl.textContent = '';
   try {
-    let result;
-    if (authTab === 'signup') {
-      result = await sb.auth.signUp({ email, password });
-      if (result.error) throw result.error;
-      if (bizName && result.data.user) {
-        await sb.from('profiles').upsert({ id: result.data.user.id, email, biz_name: bizName });
-      }
-    } else {
-      result = await sb.auth.signInWithPassword({ email, password });
-      if (result.error) throw result.error;
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: authTab === 'signup' ? 'signup' : 'login', email, password, bizName })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    // Store session manually
+    if (data.access_token) {
+      localStorage.setItem('hk_token', data.access_token);
+      localStorage.setItem('hk_refresh', data.refresh_token || '');
     }
-    // onAuthStateChange will handle showing the app
+    if (data.user) {
+      currentUser = data.user;
+      if (data.user.email) prefs.bizName = bizName || 'My Business';
+      showApp();
+    } else {
+      errEl.textContent = 'Account created! Please check your email to confirm, then sign in.';
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+      setAuthTab('login');
+    }
   } catch(e) {
     errEl.textContent = e.message || 'Something went wrong.';
     btn.disabled = false;
@@ -690,7 +703,8 @@ async function doGoogleAuth() {
 }
 
 async function doSignOut() {
-  await sb.auth.signOut();
+  localStorage.removeItem('hk_token');
+  localStorage.removeItem('hk_refresh');
   entries = []; stockItems = []; customers = []; aiHistory = [];
   currentUser = null;
   document.getElementById('main-app').style.display = 'none';
@@ -1389,15 +1403,21 @@ document.getElementById('ai-input').addEventListener('keydown', e => { if(e.key=
 // Apply language
 setLang(lang);
 
-// Auth state listener
-sb.auth.onAuthStateChange((event, session) => {
-  if (session?.user) {
-    currentUser = session.user;
-    showApp();
-  } else {
-    showAuth();
-  }
-});
+// Auth state - check stored token
+const storedToken = localStorage.getItem('hk_token');
+if (storedToken) {
+  sb.auth.getUser(storedToken).then(({ data, error }) => {
+    if (data?.user && !error) {
+      currentUser = data.user;
+      showApp();
+    } else {
+      localStorage.removeItem('hk_token');
+      showAuth();
+    }
+  });
+} else {
+  showAuth();
+}
 
 // Service worker
 if ('serviceWorker' in navigator) {
