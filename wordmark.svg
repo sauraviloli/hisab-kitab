@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 80" fill="none">
+  <!-- Handwritten/scribble style "hisab-kitab" wordmark -->
+  <path d="M12 58 C12 58 12 20 12 20 M12 38 C12 38 26 30 32 38 C32 38 32 58 32 58" stroke="#00C896" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M40 20 L40 58 M40 48 C40 48 40 60 50 60 C58 60 58 48 58 48 L58 38 C58 38 58 26 50 26 C42 26 40 38 40 38" stroke="#00C896" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="67" cy="23" r="3.5" fill="#00C896"/>
+  <path d="M64 38 L64 58" stroke="#00C896" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+  <path d="M73 28 L73 58 M73 44 C76 38 90 34 90 44 L90 58" stroke="#00C896" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M99 38 C99 38 99 56 108 58 C116 60 118 52 118 44 C118 36 116 26 108 26 C100 26 99 36 99 44 L99 68 C102 72 108 74 112 72" stroke="#00C896" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- dash -->
+  <path d="M127 44 L141 44" stroke="#00C896" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+  <!-- kitab -->
+  <path d="M152 20 L152 58 M152 44 C152 44 164 30 172 44 M152 44 C152 44 164 58 174 58" stroke="#00C896" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="183" cy="23" r="3.5" fill="#00C896"/>
+  <path d="M180 38 L180 58" stroke="#00C896" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+  <path d="M196 26 L188 46 C188 46 188 60 198 60 C206 60 208 52 208 46 L208 38 C208 30 204 26 196 26" stroke="#00C896" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M217 28 L217 58 M229 28 L217 44 M217 46 L231 58" stroke="#00C896" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

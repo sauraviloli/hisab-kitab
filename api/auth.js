@@ -8,7 +8,7 @@ export default async function handler(req) {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: h });
   try {
     const body = await req.text();
-    const { action, email, password, bizName, bizType, bizAddr, bizPhone, pan, vat, ownerName } = JSON.parse(body);
+    const { action, email, password, bizName, bizType, bizAddr, bizPhone, pan, vat, ownerName, country, currency } = JSON.parse(body);
 
     if (action === 'signup') {
       const r = await fetch(`${SB_URL}/auth/v1/signup`, {
@@ -23,7 +23,7 @@ export default async function handler(req) {
         await fetch(`${SB_URL}/rest/v1/profiles`, {
           method: 'POST',
           headers: { 'Content-Type':'application/json','apikey':SB_KEY(),'Authorization':`Bearer ${SB_KEY()}`,'Prefer':'resolution=merge-duplicates' },
-          body: JSON.stringify({ id:d.user.id, email, biz_name:bizName, biz_type:bizType, biz_addr:bizAddr, biz_phone:bizPhone, pan, vat_num:vat, owner_name:ownerName })
+          body: JSON.stringify({ id:d.user.id, email, biz_name:bizName, biz_type:bizType, biz_addr:bizAddr, biz_phone:bizPhone, pan, vat_num:vat, owner_name:ownerName, country:country||'NP', currency:currency||'NPR' })
         });
       }
       return new Response(JSON.stringify({ user:d.user, access_token:d.session?.access_token, refresh_token:d.session?.refresh_token }), { headers:h });

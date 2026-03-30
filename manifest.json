@@ -1,13 +1,11 @@
 {
   "name": "Hisab-Kitab",
   "short_name": "Hisab-Kitab",
-  "description": "Free business manager for Nepali small businesses",
+  "description": "Smart business manager for Nepal & beyond",
   "start_url": "/app.html",
   "display": "standalone",
-  "background_color": "#F4F5F7",
-  "theme_color": "#16A37F",
+  "background_color": "#0A0C12",
+  "theme_color": "#00C896",
   "orientation": "portrait",
-  "icons": [
-    { "src": "logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
-  ]
+  "icons": [{ "src": "logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
 }
