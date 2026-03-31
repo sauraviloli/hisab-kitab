@@ -8,7 +8,8 @@ export default async function handler(req) {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: h });
   try {
     const body = await req.text();
-    const { action, email, password, bizName, bizType, bizAddr, bizPhone, pan, vat, ownerName, country, currency } = JSON.parse(body);
+    const body_parsed = JSON.parse(body);
+    const { action, email, password, bizName, bizType, bizAddr, bizPhone, pan, vat, ownerName, country, currency } = body_parsed;
 
     if (action === 'signup') {
       const r = await fetch(`${SB_URL}/auth/v1/signup`, {
@@ -27,6 +28,17 @@ export default async function handler(req) {
         });
       }
       return new Response(JSON.stringify({ user:d.user, access_token:d.session?.access_token, refresh_token:d.session?.refresh_token }), { headers:h });
+    }
+
+    if (action === 'refresh') {
+      const r = await fetch(`${SB_URL}/auth/v1/token?grant_type=refresh_token`, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json','apikey':SB_KEY(),'Authorization':`Bearer ${SB_KEY()}` },
+        body: JSON.stringify({ refresh_token: body_parsed.refresh_token })
+      });
+      const d = await r.json();
+      if (d.error) return new Response(JSON.stringify({ error: d.error.message||d.error }), { status:400, headers:h });
+      return new Response(JSON.stringify({ user:d.user, access_token:d.access_token, refresh_token:d.refresh_token }), { headers:h });
     }
 
     if (action === 'login') {
