@@ -78,17 +78,18 @@ html,body{height:100%;font-family:var(--f);background:var(--bg);color:var(--t);-
 [data-theme=dark] .demo-note{color:var(--a)}
 
 /* APP */
-#app{display:none;min-height:100vh;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom))}
-.page{display:none;max-width:480px;margin:0 auto;padding:0 14px 20px}
+#app{display:none;min-height:100vh;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 10px)}
+.page{display:none;max-width:480px;margin:0 auto;padding:4px 14px 20px}
 .page.act{display:block;animation:pi .22s ease}
 @keyframes pi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 /* DEMO BANNER */
-.demo-banner{position:fixed;top:0;left:0;right:0;background:linear-gradient(135deg,#F59E0B,#D97706);color:white;font-size:12px;font-weight:800;text-align:center;padding:6px 14px;z-index:500;display:flex;align-items:center;justify-content:center;gap:12px}
+.demo-banner{position:fixed;top:0;left:0;right:0;background:linear-gradient(135deg,#F59E0B,#D97706);color:white;font-size:12px;font-weight:800;text-align:center;padding:max(env(safe-area-inset-top,0px),6px) 14px 6px;z-index:500;display:flex;align-items:center;justify-content:center;gap:12px}
 .demo-banner a{color:rgba(255,255,255,.9);text-decoration:underline;font-size:11px;cursor:pointer}
 
 /* TOP BAR */
-.tb{position:sticky;top:0;z-index:60;max-width:480px;margin:0 auto;padding:10px 14px 8px;display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-bottom:1px solid var(--bdr);transition:background .3s}
+.tb{position:sticky;top:0;z-index:60;max-width:480px;margin:0 auto;padding:max(env(safe-area-inset-top,0px),10px) 14px 8px;display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-bottom:1px solid var(--bdr);transition:background .3s}
+.has-demo-banner .tb{top:30px}
 .tb-left{display:flex;align-items:center;gap:10px}
 .tb-logo{width:34px;height:34px;border-radius:10px;overflow:hidden;box-shadow:var(--sh)}
 .tb-logo img{width:100%;height:100%}
@@ -139,6 +140,7 @@ html,body{height:100%;font-family:var(--f);background:var(--bg);color:var(--t);-
 .tb2{padding:12px;font-size:13px;font-weight:800;border:none;cursor:pointer;background:transparent;color:var(--t2);font-family:var(--f);border-radius:12px;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:7px;letter-spacing:.02em}
 .tb2.ai{background:linear-gradient(135deg,var(--g),var(--gd));color:white;box-shadow:0 4px 14px rgba(0,200,150,.4)}
 .tb2.ao{background:linear-gradient(135deg,var(--r),var(--rd));color:white;box-shadow:0 4px 14px rgba(255,92,122,.4)}
+.tb2.adep{background:linear-gradient(135deg,#818CF8,#6366F1);color:white;box-shadow:0 4px 14px rgba(129,140,248,.4)}
 
 /* FORM */
 .fg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
@@ -197,6 +199,11 @@ textarea{resize:vertical;min-height:56px}
 .en-ico{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:11px}
 .en-ico.in{background:linear-gradient(135deg,rgba(0,200,150,.2),rgba(0,200,150,.06))}
 .en-ico.out{background:linear-gradient(135deg,rgba(255,92,122,.18),rgba(255,92,122,.05))}
+.en-ico.deposit{background:linear-gradient(135deg,rgba(129,140,248,.2),rgba(129,140,248,.06))}
+.en-amt.deposit{color:var(--b)}
+.sc.dep{background:linear-gradient(135deg,rgba(129,140,248,.13),rgba(129,140,248,.03));border:1px solid rgba(129,140,248,.18)}
+.sc.dep .sc-lbl{color:var(--b)}
+.sc.dep .sc-val{color:var(--b)}
 .en-body{flex:1;min-width:0}
 .en-desc{font-size:14px;font-weight:700;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .en-meta{font-size:11px;color:var(--t3);margin-top:2px;font-weight:500}
@@ -330,14 +337,11 @@ textarea{resize:vertical;min-height:56px}
 
 /* PRINT */
 @media print{
-  body{background:white!important}
-  #bn,#demo-banner,.card,.fr,.tb,#as,#ls,.abox,.ams,.sh .sa,.en-del,.tt,.fg,.btn,.qc,.sw{display:none!important}
-  #app{padding:0!important}
-  .page{display:none!important;padding:0!important}
-  #page-ledger{display:block!important}
-  .phdr{display:block!important}
-  .en{box-shadow:none!important;border:1px solid #e5e7eb!important}
+  body *{visibility:hidden!important}
+  #print-area,#print-area *{visibility:visible!important}
+  #print-area{position:fixed!important;left:0!important;top:0!important;width:100%!important;background:white!important;z-index:9999!important}
 }
+#print-area{display:none}
 .phdr{display:none;padding:0 0 14px;border-bottom:2px solid #0F1130;margin-bottom:14px}
 .phdr h1{font-size:20px;font-weight:900}
 .phdr p{font-size:12px;color:#666;margin-top:3px}
@@ -345,6 +349,7 @@ textarea{resize:vertical;min-height:56px}
 </head>
 <body>
 <div id="toast"></div>
+<div id="print-area"></div>
 
 <!-- LOADING -->
 <div id="ls"><div class="ll"><img src="logo.svg" alt="HK"/></div><div class="lt">Loading Hisab-Kitab...</div></div>
@@ -433,7 +438,7 @@ textarea{resize:vertical;min-height:56px}
   <!-- LEDGER PAGE -->
   <div class="page act" id="page-ledger">
     <div class="phdr"><h1 id="p-biz-h">Report</h1><p id="p-date-h"></p></div>
-    <div class="ss">
+    <div class="ss" id="summary-strip" style="grid-template-columns:1fr 1fr 1fr">
       <div class="sc inc">
         <div class="sc-lbl" id="l-inc">Income</div>
         <div class="sc-val" id="v-inc">0</div>
@@ -450,18 +455,28 @@ textarea{resize:vertical;min-height:56px}
         <svg class="sc-bg" viewBox="0 0 46 46" fill="none"><circle cx="23" cy="23" r="14" stroke="#818CF8" stroke-width="3"/><path d="M17 23h12M23 17v12" stroke="#818CF8" stroke-width="2.5" stroke-linecap="round"/></svg>
       </div>
     </div>
+    <!-- Deposit summary row (shown if any deposits exist) -->
+    <div id="dep-summary" style="display:none;background:rgba(129,140,248,.08);border:1px solid rgba(129,140,248,.2);border-radius:var(--r1);padding:10px 14px;margin-bottom:12px;display:none">
+      <div style="font-size:10px;font-weight:800;color:var(--b);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">🕐 Pending Deposits</div>
+      <div id="dep-summary-content" style="font-size:13px;color:var(--t2)"></div>
+    </div>
     <div class="card">
-      <div class="tt">
+      <div class="tt" style="grid-template-columns:1fr 1fr 1fr">
         <button class="tb2 ai" id="b-in" onclick="setType('in')">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M12 5L6 11M12 5L18 11"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M12 5L6 11M12 5L18 11"/></svg>
           <span id="l-cin">Cash In</span>
         </button>
         <button class="tb2" id="b-out" onclick="setType('out')">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M12 19L6 13M12 19L18 13"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M12 19L6 13M12 19L18 13"/></svg>
           <span id="l-cout">Cash Out</span>
+        </button>
+        <button class="tb2" id="b-dep" onclick="setType('deposit')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          <span id="l-dep">Deposit</span>
         </button>
       </div>
       <div class="qc" id="qcats"></div>
+      <div id="ledger-tip" style="display:none;font-size:11px;color:var(--t2);background:rgba(129,140,248,.07);border-radius:8px;padding:7px 10px;margin-bottom:8px;font-weight:500;line-height:1.5;border:1px solid rgba(129,140,248,.12)"></div>
       <div class="fg">
         <div class="sd-wrap">
           <label class="fl" id="l-desc">Description</label>
@@ -478,6 +493,21 @@ textarea{resize:vertical;min-height:56px}
         <div><label class="fl" id="l-date">Date</label><input type="date" id="edate"/></div>
       </div>
       <div class="fg full"><div><label class="fl" id="l-note">Note</label><input type="text" id="note" placeholder="Extra details..."/></div></div>
+      <!-- DEPOSIT FIELDS (shown only when deposit type selected) -->
+      <div id="deposit-fields" style="display:none;margin-top:2px">
+        <div style="background:rgba(129,140,248,.08);border:1px solid rgba(129,140,248,.2);border-radius:var(--r1);padding:12px;margin-bottom:4px">
+          <div style="font-size:12px;font-weight:800;color:var(--b);margin-bottom:10px">🕐 Deposit / Advance Payment</div>
+          <div class="fg">
+            <div><label class="fl">Customer Name</label><input type="text" id="dep-customer" placeholder="Customer name"/></div>
+            <div><label class="fl">Service / Item</label><input type="text" id="dep-service" placeholder="e.g. Tour Package"/></div>
+          </div>
+          <div class="fg">
+            <div><label class="fl">Total Amount (<span class="dep-sym">रू</span>)</label><input type="number" id="dep-total" placeholder="Full price" min="0"/></div>
+            <div><label class="fl">Balance Due (<span class="dep-sym">रू</span>)</label><input type="number" id="dep-balance" placeholder="Auto-calculated" readonly style="opacity:.7"/></div>
+          </div>
+          <div class="fg full"><div><label class="fl">Expected Payment Date</label><input type="date" id="dep-due"/></div></div>
+        </div>
+      </div>
       <button class="btn" style="margin-top:10px" onclick="addEntry()" id="add-btn">+ Add Entry</button>
     </div>
     <div class="fr">
@@ -692,6 +722,22 @@ textarea{resize:vertical;min-height:56px}
 <!-- MODALS -->
 <div class="mo" id="biz-modal" style="display:none"><div class="md"><div class="mdg"></div>
   <div class="mdt">Business Profile <button class="mdc" onclick="closeMod('biz-modal')">✕</button></div>
+  <!-- Business Logo Upload -->
+  <div style="margin-bottom:14px">
+    <label class="fl">Business Logo (shown on invoices)</label>
+    <div style="display:flex;align-items:center;gap:12px;margin-top:6px">
+      <div id="logo-preview-wrap" style="width:64px;height:64px;border-radius:12px;background:var(--s2);border:2px dashed var(--bdr2);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;cursor:pointer" onclick="document.getElementById('logo-upload').click()">
+        <img id="logo-preview-img" src="" style="width:100%;height:100%;object-fit:contain;display:none"/>
+        <span id="logo-preview-txt" style="font-size:24px">🏪</span>
+      </div>
+      <div>
+        <button class="btn sec" style="width:auto;padding:8px 14px;font-size:12px;margin-bottom:6px" onclick="document.getElementById('logo-upload').click()">Upload Logo</button>
+        <button class="btn sec" style="width:auto;padding:8px 14px;font-size:12px;color:var(--r)" onclick="removeLogo()" id="logo-remove-btn">Remove</button>
+        <div style="font-size:11px;color:var(--t3);margin-top:4px">PNG, JPG · Max 2MB · Square recommended</div>
+      </div>
+      <input type="file" id="logo-upload" accept="image/*" style="display:none" onchange="handleLogoUpload(this)"/>
+    </div>
+  </div>
   <div class="fi"><label>Business Name</label><input type="text" id="m-biz"/></div>
   <div class="fi"><label>Business Type</label><select id="m-type"><option value="retail">🏪 Retail</option><option value="wholesale">🏭 Wholesale</option><option value="restaurant">🍽️ Restaurant</option><option value="pharmacy">💊 Pharmacy</option><option value="salon">✂️ Salon</option><option value="travel">✈️ Travel</option><option value="construction">🏗️ Construction</option><option value="freelance">💼 Freelance</option><option value="education">📚 Education</option><option value="grocery">🛒 Grocery</option><option value="fashion">👗 Fashion</option><option value="tech">💻 IT/Tech</option><option value="medical">🏥 Medical</option><option value="property">🏠 Property</option><option value="other">📦 Other</option></select></div>
   <div class="fi"><label>Address</label><input type="text" id="m-addr"/></div>
@@ -790,21 +836,81 @@ const REGIONS={
 // BUSINESS MODES
 // ═══════════════════════════════════════════
 const BMODES={
-  retail:{tabName:'Stock',tabIcon:'box',cats:['Sales','Purchase','Salary','Rent','Utilities','Other'],isService:false},
-  wholesale:{tabName:'Inventory',tabIcon:'box',cats:['Sales','Purchase','Salary','Transport','Rent','Other'],isService:false},
-  restaurant:{tabName:'Menu & Stock',tabIcon:'box',cats:['Food Sales','Beverages','Ingredients','Salary','Rent','Utilities','Other'],isService:false},
-  pharmacy:{tabName:'Medicines',tabIcon:'box',cats:['Medicine Sales','Consultation','Stock Purchase','Salary','Rent','Other'],isService:false},
-  salon:{tabName:'Services',tabIcon:'brief',cats:['Service Revenue','Product Sales','Salary','Rent','Supplies','Other'],isService:true},
-  travel:{tabName:'Packages',tabIcon:'brief',cats:['Bookings','Commission','Tour Package','Salary','Office Rent','Other'],isService:true},
-  construction:{tabName:'Projects',tabIcon:'brief',cats:['Project Payment','Materials','Labour','Equipment','Rent','Other'],isService:true},
-  freelance:{tabName:'Services',tabIcon:'brief',cats:['Service Fee','Consulting','Retainer','Subscription','Other'],isService:true},
-  education:{tabName:'Courses',tabIcon:'brief',cats:['Tuition','Admission Fee','Materials','Salary','Rent','Other'],isService:true},
-  grocery:{tabName:'Products',tabIcon:'box',cats:['Sales','Purchase','Salary','Rent','Utilities','Other'],isService:false},
-  fashion:{tabName:'Products',tabIcon:'box',cats:['Sales','Purchase','Salary','Rent','Marketing','Other'],isService:false},
-  tech:{tabName:'Projects',tabIcon:'brief',cats:['Client Revenue','Subscriptions','Software Tools','Salary','Office','Other'],isService:true},
-  medical:{tabName:'Supplies',tabIcon:'box',cats:['Consultation','Procedures','Medicines','Salary','Rent','Other'],isService:false},
-  property:{tabName:'Properties',tabIcon:'brief',cats:['Rent Received','Sale Revenue','Commission','Maintenance','Tax','Other'],isService:true},
-  other:{tabName:'Items',tabIcon:'box',cats:['Revenue','Purchase','Salary','Rent','Other'],isService:false},
+  retail:{tabName:'Stock',emoji:'📦',cats:['Sales','Purchase','Salary','Rent','Utilities','Other'],isService:false,
+    inLabel:'Cash In / Sales',outLabel:'Cash Out / Purchase',
+    quickActions:['Record Sale','Buy Stock','Pay Salary','Pay Rent'],
+    stockLabel:'Item',stockUnit:true,showQty:true,
+    ledgerTip:'Tip: Type a stock item name to auto-fill price from inventory.'},
+  wholesale:{tabName:'Inventory',emoji:'🏭',cats:['Bulk Sales','Stock Purchase','Transport','Salary','Rent','Other'],isService:false,
+    inLabel:'Revenue In',outLabel:'Expenses Out',
+    quickActions:['Bulk Sale','Purchase Stock','Transport Cost','Pay Salary'],
+    stockLabel:'Item',stockUnit:true,showQty:true,
+    ledgerTip:'Track bulk sales and purchases. Use the deposit feature for advance orders.'},
+  restaurant:{tabName:'Menu',emoji:'🍽️',cats:['Dine-In Sales','Takeaway','Beverages','Ingredients','Salary','Rent','Utilities','Other'],isService:false,
+    inLabel:'Revenue / Sales',outLabel:'Costs / Expenses',
+    quickActions:['Daily Sales','Ingredient Buy','Staff Salary','Utility Bill'],
+    stockLabel:'Menu Item',stockUnit:false,showQty:false,
+    ledgerTip:'Record daily sales totals or per-table transactions. Track ingredient costs separately.'},
+  pharmacy:{tabName:'Medicines',emoji:'💊',cats:['Medicine Sales','OTC Sales','Consultation','Stock Purchase','Salary','Rent','Other'],isService:false,
+    inLabel:'Sales Revenue',outLabel:'Stock & Expenses',
+    quickActions:['Medicine Sale','OTC Sale','Buy Stock','Pay Salary'],
+    stockLabel:'Medicine',stockUnit:true,showQty:true,
+    ledgerTip:'Track expiry dates in notes. Use low-stock alerts for critical medicines.'},
+  salon:{tabName:'Services',emoji:'✂️',cats:['Haircut','Colour','Facial','Waxing','Product Sale','Salary','Rent','Supplies','Other'],isService:true,
+    inLabel:'Service Revenue',outLabel:'Expenses',
+    quickActions:['Service Done','Product Sale','Buy Supplies','Pay Salary'],
+    stockLabel:'Service',stockUnit:false,showQty:false,
+    ledgerTip:'Use deposit feature for bookings. Services list is your price menu.'},
+  travel:{tabName:'Packages',emoji:'✈️',cats:['Tour Booking','Flight Commission','Hotel Commission','Visa Fee','Salary','Office Rent','Other'],isService:true,
+    inLabel:'Booking Revenue',outLabel:'Expenses',
+    quickActions:['New Booking','Commission In','Office Expense','Pay Salary'],
+    stockLabel:'Package',stockUnit:false,showQty:false,
+    ledgerTip:'Use deposit feature for advance tour bookings — collect deposit then final payment.'},
+  construction:{tabName:'Projects',emoji:'🏗️',cats:['Project Payment','Advance Received','Materials','Labour','Equipment Hire','Rent','Other'],isService:true,
+    inLabel:'Payment Received',outLabel:'Costs / Expenses',
+    quickActions:['Payment In','Buy Materials','Labour Cost','Equipment'],
+    stockLabel:'Material',stockUnit:true,showQty:true,
+    ledgerTip:'Use deposit for advance project payments. Track materials as stock items.'},
+  freelance:{tabName:'Services',emoji:'💼',cats:['Project Fee','Consulting','Retainer','Advance','Software','Internet','Other'],isService:true,
+    inLabel:'Income / Revenue',outLabel:'Expenses / Tools',
+    quickActions:['Invoice Paid','Project Income','Buy Tool','Pay Subscription'],
+    stockLabel:'Service / Skill',stockUnit:false,showQty:false,
+    ledgerTip:'Use deposit for project advances. Create invoices for each client directly.'},
+  education:{tabName:'Students',emoji:'📚',cats:['Tuition Fee','Admission Fee','Exam Fee','Materials','Salary','Rent','Utilities','Other'],isService:true,
+    inLabel:'Fees Collected',outLabel:'Expenses',
+    quickActions:['Fee Collected','Admission Fee','Buy Materials','Pay Salary'],
+    stockLabel:'Course',stockUnit:false,showQty:false,
+    ledgerTip:'Use deposit for advance fee collection. Track each class or batch separately in notes.'},
+  grocery:{tabName:'Products',emoji:'🛒',cats:['Daily Sales','Bulk Sales','Purchase','Salary','Rent','Utilities','Other'],isService:false,
+    inLabel:'Sales Revenue',outLabel:'Purchase & Costs',
+    quickActions:['Daily Sales','Buy Stock','Pay Salary','Pay Rent'],
+    stockLabel:'Product',stockUnit:true,showQty:true,
+    ledgerTip:'Type a product name to auto-fill the selling price from your product list.'},
+  fashion:{tabName:'Products',emoji:'👗',cats:['Retail Sale','Wholesale','Returns','Stock Purchase','Salary','Rent','Marketing','Other'],isService:false,
+    inLabel:'Sales Revenue',outLabel:'Purchase & Costs',
+    quickActions:['Sale Made','Buy Stock','Marketing Spend','Pay Salary'],
+    stockLabel:'Product',stockUnit:true,showQty:true,
+    ledgerTip:'Track seasonal collections as stock. Use notes for size/colour variants.'},
+  tech:{tabName:'Projects',emoji:'💻',cats:['Project Revenue','Maintenance','Subscription Revenue','Software Tools','Salary','Office','Other'],isService:true,
+    inLabel:'Revenue / Income',outLabel:'Costs / Subscriptions',
+    quickActions:['Invoice Paid','Maintenance Fee','Buy Tools','Pay Team'],
+    stockLabel:'Service / Tool',stockUnit:false,showQty:false,
+    ledgerTip:'Track recurring client subscriptions. Use deposit for project kickoff payments.'},
+  medical:{tabName:'Supplies',emoji:'🏥',cats:['Consultation','Procedure','Medicine Sale','Lab Test','Stock Purchase','Salary','Rent','Other'],isService:false,
+    inLabel:'Revenue / Collections',outLabel:'Expenses',
+    quickActions:['Consultation Fee','Procedure Done','Buy Medicines','Pay Salary'],
+    stockLabel:'Medicine/Supply',stockUnit:true,showQty:true,
+    ledgerTip:'Track medicine expiry in notes. Use low-stock alerts for critical supplies.'},
+  property:{tabName:'Properties',emoji:'🏠',cats:['Rent Received','Sale Revenue','Commission','Security Deposit','Maintenance','Tax','Other'],isService:true,
+    inLabel:'Income Received',outLabel:'Costs / Expenses',
+    quickActions:['Rent Received','Deposit In','Maintenance Cost','Pay Tax'],
+    stockLabel:'Property',stockUnit:false,showQty:false,
+    ledgerTip:'Use deposit feature for security deposits. Track each property in the description.'},
+  other:{tabName:'Items',emoji:'📦',cats:['Revenue','Service Fee','Purchase','Salary','Rent','Other'],isService:false,
+    inLabel:'Income In',outLabel:'Expenses Out',
+    quickActions:['Add Income','Add Expense'],
+    stockLabel:'Item',stockUnit:true,showQty:true,
+    ledgerTip:''},
 };
 
 // ═══════════════════════════════════════════
@@ -912,6 +1018,16 @@ function applyBModeUI(){
   const nls=document.getElementById('nl-s');if(nls)nls.textContent=b.tabName;
   const stt=document.getElementById('stock-tab-title');if(stt)stt.textContent=b.tabName;
   const sm=document.getElementById('set-mode');if(sm)sm.value=prefs.businessMode;
+  // Update Cash In / Cash Out labels to be business-specific
+  const cinEl=document.getElementById('l-cin');if(cinEl)cinEl.textContent=b.inLabel||'Cash In';
+  const coutEl=document.getElementById('l-cout');if(coutEl)coutEl.textContent=b.outLabel||'Cash Out';
+  // Update desc placeholder
+  const descEl=document.getElementById('desc');if(descEl)descEl.placeholder=b.isService?'Type service or package name...':'Type or pick from stock...';
+  // Show ledger tip
+  const tipEl=document.getElementById('ledger-tip');
+  if(tipEl){if(b.ledgerTip){tipEl.textContent='💡 '+b.ledgerTip;tipEl.style.display='block';}else{tipEl.style.display='none';}}
+  // Quick action buttons
+  renderQuickCats();
   buildStockForm();
   buildCatSelect();
 }
@@ -1045,6 +1161,27 @@ async function pushInvoiceDB(inv){if(!user||isDemo)return;await sb.from('invoice
 async function saveProfile(){if(!user||isDemo)return;await sb.from('profiles').upsert({id:user.id,email:user.email,biz_name:prefs.bizName,biz_type:prefs.bizType,biz_addr:prefs.bizAddr,biz_phone:prefs.bizPhone,pan:prefs.pan,vat_num:prefs.vat,owner_name:prefs.ownerName,country:prefs.region,currency:rg().curr,business_mode:prefs.businessMode,workspace_id:prefs.workspaceId||null});}
 function savePref(k,v){prefs[k]=v;saveLocal();if(!isDemo)saveProfile();}
 
+// LOGO FUNCTIONS
+function handleLogoUpload(input){
+  const file=input.files[0];if(!file)return;
+  if(file.size>2*1024*1024){toast('Logo must be under 2MB');return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    prefs.logoData=e.target.result;saveLocal();
+    updateLogoPreview();
+    toast('Logo uploaded ✓');
+  };
+  reader.readAsDataURL(file);
+}
+function updateLogoPreview(){
+  const img=document.getElementById('logo-preview-img');
+  const txt=document.getElementById('logo-preview-txt');
+  const rm=document.getElementById('logo-remove-btn');
+  if(prefs.logoData&&img){img.src=prefs.logoData;img.style.display='block';if(txt)txt.style.display='none';if(rm)rm.style.display='inline-block';}
+  else{if(img)img.style.display='none';if(txt){txt.style.display='block';}if(rm)rm.style.display='none';}
+}
+function removeLogo(){prefs.logoData=null;saveLocal();updateLogoPreview();toast('Logo removed');}
+
 // ═══ UI ═══
 function updateUI(){
   applyLang();applyRegionUI();applyBModeUI();updateSummary();renderEntries();renderStock();renderCustomers();renderInvoices();
@@ -1067,8 +1204,9 @@ function showApp(){
   document.getElementById('bn').style.display='block';
   const db=document.getElementById('demo-banner');if(db)db.style.display=isDemo?'flex':'none';
   if(isDemo){
-    // shift pages down for demo banner
-    document.getElementById('topbar').style.top='30px';
+    document.body.classList.add('has-demo-banner');
+  } else {
+    document.body.classList.remove('has-demo-banner');
   }
   if(!isDemo)loadLocal();
   updateUI();
@@ -1077,11 +1215,11 @@ function showApp(){
 
 // ═══ LANGUAGE ═══
 const T={
-  en:{inc:'Income',exp:'Expense',bal:'Balance',cin:'Cash In',cout:'Cash Out',desc:'Description',amt:'Amount',cat:'Category',date:'Date',note:'Note',add:'+ Add Entry',entries:'Entries',share:'Share',today:'Today',week:'This Week',month:'This Month',all:'All Time',saved:'Saved ✓',del:'Deleted',upd:'Updated ✓',l:'Ledger',r:'Report',i:'Invoice',c:'Clients',a:'AI',aiT:'Ask your AI business advisor',chips:['How is my business?','Biggest expenses?','Tips to save money?','Am I profitable?','Stock reorder?'],noE:'No entries yet. Add your first transaction above.',noC:'No customers yet.',noI:'No invoices yet.'},
-  ne:{inc:'आम्दानी',exp:'खर्च',bal:'मौज्दात',cin:'पैसा आयो',cout:'पैसा गयो',desc:'विवरण',amt:'रकम',cat:'श्रेणी',date:'मिति',note:'टिप्पणी',add:'+ थप्नुहोस्',entries:'लेनदेन',share:'पठाउनुहोस्',today:'आज',week:'यो हप्ता',month:'यो महिना',all:'सबै',saved:'सेभ भयो ✓',del:'मेटियो',upd:'अपडेट भयो ✓',l:'हिसाब',r:'रिपोर्ट',i:'बिल',c:'ग्राहक',a:'AI',aiT:'आफ्नो व्यापार सल्लाहकारलाई सोध्नुहोस्',chips:['मेरो व्यापार कस्तो छ?','सबैभन्दा बढी खर्च?','पैसा बचाउने तरिका?','नाफामा छु?','स्टक अर्डर?'],noE:'अहिलेसम्म कुनै लेनदेन छैन।',noC:'कुनै ग्राहक छैन।',noI:'कुनै बिल छैन।'},
+  en:{inc:'Income',exp:'Expense',bal:'Balance',cin:'Cash In',cout:'Cash Out',desc:'Description',amt:'Amount',cat:'Category',date:'Date',note:'Note',add:'+ Add Entry',dep:'Deposit',entries:'Entries',share:'Share',today:'Today',week:'This Week',month:'This Month',all:'All Time',saved:'Saved ✓',del:'Deleted',upd:'Updated ✓',l:'Ledger',r:'Report',i:'Invoice',c:'Clients',a:'AI',aiT:'Ask your AI business advisor',chips:['How is my business?','Biggest expenses?','Tips to save money?','Am I profitable?','Stock reorder?'],noE:'No entries yet. Add your first transaction above.',noC:'No customers yet.',noI:'No invoices yet.'},
+  ne:{inc:'आम्दानी',exp:'खर्च',bal:'मौज्दात',cin:'पैसा आयो',cout:'पैसा गयो',desc:'विवरण',amt:'रकम',cat:'श्रेणी',date:'मिति',note:'टिप्पणी',add:'+ थप्नुहोस्',dep:'डिपोजिट',entries:'लेनदेन',share:'पठाउनुहोस्',today:'आज',week:'यो हप्ता',month:'यो महिना',all:'सबै',saved:'सेभ भयो ✓',del:'मेटियो',upd:'अपडेट भयो ✓',l:'हिसाब',r:'रिपोर्ट',i:'बिल',c:'ग्राहक',a:'AI',aiT:'आफ्नो व्यापार सल्लाहकारलाई सोध्नुहोस्',chips:['मेरो व्यापार कस्तो छ?','सबैभन्दा बढी खर्च?','पैसा बचाउने तरिका?','नाफामा छु?','स्टक अर्डर?'],noE:'अहिलेसम्म कुनै लेनदेन छैन।',noC:'कुनै ग्राहक छैन।',noI:'कुनै बिल छैन।'},
 };
 function setLang(l){lang=l;localStorage.setItem('hk_lang',l);['lb-en','s-lb-en'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('act',l==='en');});['lb-ne','s-lb-ne'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('act',l==='ne');});applyLang();}
-function applyLang(){const s=T[lang];const m={'l-inc':s.inc,'l-exp':s.exp,'l-bal':s.bal,'l-cin':s.cin,'l-cout':s.cout,'l-desc':s.desc,'l-amt':s.amt,'l-cat':s.cat,'l-date':s.date,'l-note':s.note,'add-btn':s.add,'l-share':s.share,'ai-title':s.aiT,'nl-l':s.l,'nl-r':s.r,'nl-i':s.i,'nl-c':s.c,'nl-a':s.a};Object.entries(m).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.textContent=val;});updateFilterLabels();if(activePage==='ai')renderChips();}
+function applyLang(){const s=T[lang];const m={'l-inc':s.inc,'l-exp':s.exp,'l-bal':s.bal,'l-cin':s.cin,'l-cout':s.cout,'l-desc':s.desc,'l-amt':s.amt,'l-cat':s.cat,'l-date':s.date,'l-note':s.note,'add-btn':s.add,'l-dep':s.dep||'Deposit','l-share':s.share,'ai-title':s.aiT,'nl-l':s.l,'nl-r':s.r,'nl-i':s.i,'nl-c':s.c,'nl-a':s.a};Object.entries(m).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.textContent=val;});updateFilterLabels();if(activePage==='ai')renderChips();}
 
 // ═══ NAVIGATION ═══
 function setPage(p){activePage=p;['ledger','report','invoice','stock','customers','ai','settings'].forEach(k=>{const pg=document.getElementById('page-'+k),nb=document.getElementById('nb-'+k);if(pg)pg.classList.toggle('act',k===p);if(nb)nb.classList.toggle('act',k===p);});if(p==='report')renderReport();if(p==='ai'){renderInsights();renderChips();}if(p==='invoice')renderInvoices();}
@@ -1090,7 +1228,19 @@ function setPage(p){activePage=p;['ledger','report','invoice','stock','customers
 function getFiltered(){const now=new Date(),q=(document.getElementById('search')?.value||'').toLowerCase();return entries.filter(e=>{if(filter==='today'&&e.date!==tod())return false;if(filter==='week'){const d=new Date(e.date);if((now-d)/86400000<0||(now-d)/86400000>=7)return false;}if(filter==='month'){const d=new Date(e.date);if(d.getMonth()!==now.getMonth()||d.getFullYear()!==now.getFullYear())return false;}if(q&&!(e.desc||e.description||'').toLowerCase().includes(q)&&!e.category.toLowerCase().includes(q))return false;return true;});}
 function setFilter(f){filter=f;['today','week','month','all'].forEach(k=>document.getElementById('f-'+k).classList.toggle('act',k===f));updateSummary();renderEntries();updateFilterLabels();}
 function updateFilterLabels(){const s=T[lang];['today','week','month','all'].forEach(k=>{const el=document.getElementById('f-'+k);if(el)el.textContent=s[k];});const lh=document.getElementById('l-entries');if(lh)lh.textContent=s.entries+' · '+{today:s.today,week:s.week,month:s.month,all:s.all}[filter];}
-function setType(t){eType=t;document.getElementById('b-in').className='tb2'+(t==='in'?' ai':'');document.getElementById('b-out').className='tb2'+(t==='out'?' ao':'');if(t!=='in'){const dd=document.getElementById('stock-dd');if(dd)dd.classList.remove('open');}}
+function setType(t){
+  eType=t;
+  document.getElementById('b-in').className='tb2'+(t==='in'?' ai':'');
+  document.getElementById('b-out').className='tb2'+(t==='out'?' ao':'');
+  document.getElementById('b-dep').className='tb2'+(t==='deposit'?' adep':'');
+  if(t!=='in'){const dd=document.getElementById('stock-dd');if(dd)dd.classList.remove('open');}
+  // Update amount label for deposit
+  const aml=document.getElementById('l-amt');
+  if(aml){const sym=rg().sym;aml.innerHTML=t==='deposit'?`Deposit Amount (<span id="curr-sym">${sym}</span>)`:`Amount (<span id="curr-sym">${sym}</span>)`;}
+  // Toggle deposit-specific fields
+  const depFields=document.getElementById('deposit-fields');
+  if(depFields)depFields.style.display=t==='deposit'?'block':'none';
+}
 
 // STOCK DROPDOWN - FIXED using onmousedown to prevent blur-before-click
 function onDescInput(val){
@@ -1114,7 +1264,28 @@ function pickStock(id,name,price){
 document.addEventListener('click',e=>{const dd=document.getElementById('stock-dd');if(dd&&!e.target.closest('.sd-wrap'))dd.classList.remove('open');});
 document.getElementById('desc')?.addEventListener('blur',()=>{setTimeout(()=>{const dd=document.getElementById('stock-dd');if(dd)dd.classList.remove('open');},200);});
 
-function renderQuickCats(){const cats=bm().cats.slice(0,5);const el=document.getElementById('qcats');if(!el)return;el.innerHTML=cats.map(c=>`<button class="qct" onclick="document.getElementById('cat').value='${c}'">${c}</button>`).join('');}
+function renderQuickCats(){
+  const b=bm();const el=document.getElementById('qcats');if(!el)return;
+  // Show quick action buttons + category shortcuts
+  const cats=b.cats.slice(0,5);
+  el.innerHTML=cats.map(c=>`<button class="qct" onclick="document.getElementById('cat').value='${c}'">${c}</button>`).join('');
+}
+
+// Auto-calc deposit balance
+document.getElementById('amount')?.addEventListener('input',function(){
+  if(eType==='deposit'){
+    const dep=parseFloat(this.value)||0;
+    const total=parseFloat(document.getElementById('dep-total')?.value)||0;
+    const bal=document.getElementById('dep-balance');
+    if(bal&&total>0)bal.value=Math.max(0,total-dep);
+  }
+});
+document.getElementById('dep-total')?.addEventListener('input',function(){
+  const dep=parseFloat(document.getElementById('amount')?.value)||0;
+  const total=parseFloat(this.value)||0;
+  const bal=document.getElementById('dep-balance');
+  if(bal&&total>0)bal.value=Math.max(0,total-dep);
+});
 
 async function addEntry(){
   const desc=(document.getElementById('desc').value||'').trim();
@@ -1123,7 +1294,22 @@ async function addEntry(){
   const date=document.getElementById('edate').value||tod();
   const note=(document.getElementById('note').value||'').trim();
   if(!desc||!amount||amount<=0){toast('Please fill description and amount');return;}
-  const entry={id:'tmp-'+Date.now(),desc,amount,type:eType,category:cat,date,note};
+  
+  // Build note for deposit
+  let finalNote=note;
+  let finalDesc=desc;
+  if(eType==='deposit'){
+    const depCust=(document.getElementById('dep-customer')?.value||'').trim();
+    const depService=(document.getElementById('dep-service')?.value||'').trim();
+    const depTotal=parseFloat(document.getElementById('dep-total')?.value)||0;
+    const depBalance=Math.max(0,depTotal-amount);
+    const depDue=(document.getElementById('dep-due')?.value||'');
+    if(depCust)finalDesc=`[DEPOSIT] ${depService||desc} — ${depCust}`;
+    finalNote=`Deposit: ${fmt(amount)}${depTotal?` | Total: ${fmt(depTotal)} | Balance: ${fmt(depBalance)}`:''}${depDue?` | Due: ${depDue}`:''}`;
+    // Clear deposit fields
+    ['dep-customer','dep-service','dep-total','dep-balance','dep-due'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  }
+  const entry={id:'tmp-'+Date.now(),desc:finalDesc,amount,type:eType==='deposit'?'in':eType,category:eType==='deposit'?'Deposit':cat,date,note:finalNote,isDeposit:eType==='deposit'};
   entries.unshift(entry);saveLocal();
   document.getElementById('desc').value='';document.getElementById('amount').value='';document.getElementById('note').value='';document.getElementById('stock-dd').classList.remove('open');
   updateSummary();renderEntries();toast(T[lang].saved);
@@ -1143,27 +1329,48 @@ function updateSummary(){
   document.getElementById('v-inc').textContent=fmt(inc);
   document.getElementById('v-exp').textContent=fmt(exp);
   const bal=inc-exp;const el=document.getElementById('v-bal');el.textContent=fmt(Math.abs(bal));el.style.color=bal>=0?'var(--b)':'var(--r)';
+  // Deposits
+  const deposits=f.filter(e=>e.isDeposit||e.category==='Deposit');
+  const depEl=document.getElementById('dep-summary');
+  if(depEl&&deposits.length>0){
+    const depTotal=deposits.reduce((s,e)=>s+Number(e.amount),0);
+    depEl.style.display='block';
+    const cont=document.getElementById('dep-summary-content');
+    if(cont)cont.textContent=`${deposits.length} deposit${deposits.length>1?'s':''} received · Total: ${fmt(depTotal)}`;
+  }else if(depEl){depEl.style.display='none';}
 }
 
 // Entry icons by category
-const EICO={Sales:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>`,Purchase:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FF5C7A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>`,Salary:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,Rent:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,Utilities:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`,default:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#9BA0BC" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`};
-function getEico(cat){return EICO[cat]||EICO[Object.keys(EICO).find(k=>cat.includes(k))||'default'];}
+const EICO={
+  Sales:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#00C896" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>`,
+  Purchase:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FF5C7A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>`,
+  Salary:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+  Rent:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+  Utilities:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`,
+  Deposit:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`,
+  default:`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#9BA0BC" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`
+};
+function getEico(cat){return EICO[cat]||EICO[Object.keys(EICO).find(k=>cat&&cat.includes(k))||'default'];}
 
 function renderEntries(){
   const el=document.getElementById('entries');if(!el)return;
   const f=getFiltered();
   if(!f.length){el.innerHTML=`<div class="es"><svg class="es-icon" viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="8" y="8" width="40" height="40" rx="8"/><line x1="18" y1="22" x2="38" y2="22" stroke-linecap="round"/><line x1="18" y1="28" x2="30" y2="28" stroke-linecap="round"/><line x1="18" y1="34" x2="34" y2="34" stroke-linecap="round"/></svg><div class="es-t">No entries</div><div class="es-s">${T[lang].noE}</div></div>`;return;}
-  el.innerHTML=f.map(e=>`<div class="en">
-    <div class="en-ico ${e.type}">${getEico(e.category)}</div>
-    <div class="en-body">
-      <div class="en-desc">${e.desc||e.description}</div>
-      <div class="en-meta">${e.category}${e.note?' · '+e.note:''} · ${e.date}</div>
-    </div>
-    <div class="en-right">
-      <span class="en-amt ${e.type}">${e.type==='in'?'+':'−'}${fmt(Number(e.amount))}</span>
-      <button class="en-del" onclick="deleteEntry('${e.id}')">✕</button>
-    </div>
-  </div>`).join('');
+  el.innerHTML=f.map(e=>{
+    const isDeposit=e.isDeposit||e.category==='Deposit';
+    const icoClass=isDeposit?'deposit':e.type;
+    return`<div class="en">
+      <div class="en-ico ${icoClass}">${getEico(isDeposit?'Deposit':e.category)}</div>
+      <div class="en-body">
+        <div class="en-desc">${e.desc||e.description}${isDeposit?'<span style="font-size:10px;font-weight:800;background:rgba(129,140,248,.15);color:var(--b);padding:1px 6px;border-radius:6px;margin-left:5px">DEPOSIT</span>':''}</div>
+        <div class="en-meta">${e.category}${e.note?' · '+e.note:''} · ${e.date}</div>
+      </div>
+      <div class="en-right">
+        <span class="en-amt ${isDeposit?'deposit':e.type}">${e.type==='in'||isDeposit?'+':'−'}${fmt(Number(e.amount))}</span>
+        <button class="en-del" onclick="deleteEntry('${e.id}')">✕</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ═══ REPORT ═══
@@ -1202,20 +1409,34 @@ function buildInvHTML(inv){
   const notes=inv.notes||document.getElementById('iv-notes').value||'';
   const number=inv.number||('INV-'+String(invNum+1).padStart(3,'0'));
   const status=inv.status||'unpaid';
-  return`<div class="inv-prev"><div class="ip-hdr"><div><div class="ip-title">INVOICE</div><div class="ip-meta">No: ${number} | ${date}${due?' | Due: '+due:''}</div></div><div class="ip-biz"><div class="ip-biz-name">${biz}</div><div class="ip-biz-sub">${pan?r.panLabel.split('(')[0]+': '+pan:''}${vatNum?' | '+r.vatLabel+': '+vatNum:''}</div></div></div>
+  const logoHTML=prefs.logoData?`<img src="${prefs.logoData}" style="width:56px;height:56px;object-fit:contain;border-radius:8px;margin-bottom:6px;display:block" alt="Logo"/>`:'';
+  return`<div class="inv-prev"><div class="ip-hdr"><div>${logoHTML}<div class="ip-title">INVOICE</div><div class="ip-meta">No: ${number} | ${date}${due?' | Due: '+due:''}</div></div><div class="ip-biz"><div class="ip-biz-name">${biz}</div><div class="ip-biz-sub">${pan?r.panLabel.split('(')[0]+': '+pan:''}${vatNum?' | '+r.vatLabel+': '+vatNum:''}</div></div></div>
   <div style="margin-bottom:14px"><div class="ip-to-lbl">Bill To</div><div class="ip-to-name">${buyer}</div></div>
   <table class="ip-table"><thead><tr><th>Description</th><th style="text-align:center">Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${items.map(i=>`<tr><td>${i.desc||'Item'}</td><td style="text-align:center">${i.qty||1}</td><td style="text-align:right">${r.sym} ${Math.round(i.rate||0).toLocaleString('en')}</td><td style="text-align:right">${r.sym} ${Math.round((i.qty||1)*(i.rate||0)).toLocaleString('en')}</td></tr>`).join('')}</tbody></table>
   <div class="ip-totals"><div class="ip-tr"><span class="ip-tr-lbl">Subtotal</span><span>${r.sym} ${Math.round(sub).toLocaleString('en')}</span></div><div class="ip-tr"><span class="ip-tr-lbl" style="color:#FF5C7A">${r.taxLabel}</span><span style="color:#FF5C7A">+${r.sym} ${Math.round(tax).toLocaleString('en')}</span></div><div class="ip-tr fin"><span>Total Due</span><span>${r.sym} ${Math.round(total).toLocaleString('en')}</span></div></div>
   ${status==='paid'?'<div style="text-align:right;margin-top:8px"><span style="background:#dcfaf0;color:#009970;font-size:11px;font-weight:900;padding:4px 12px;border-radius:100px">✓ PAID</span></div>':''}
   ${notes?`<div class="ip-footer">${notes}</div>`:''}
-  <div class="ip-footer" style="margin-top:6px">Generated by Hisab-Kitab · ${new Date().getFullYear()}</div></div>`;
+  <div style="margin-top:14px;padding-top:10px;border-top:1px solid #E5E7EB;display:flex;align-items:center;justify-content:space-between">
+    <div style="font-size:11px;color:#9CA3AF">${notes||'Thank you for your business!'}</div>
+    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+      <img src="logo.svg" style="width:18px;height:18px;border-radius:4px" alt="HK"/>
+      <span style="font-size:11px;color:#9CA3AF;font-weight:700">Hisab-Kitab</span>
+    </div>
+  </div></div>`;
 }
 function updateIvPrev(){const el=document.getElementById('iv-preview');if(el)el.innerHTML=buildInvHTML({});}
 function getInvData(){
   const{sub,tax,total}=getInvTotals();invNum++;localStorage.setItem('hk_inv_num',String(invNum));
   return{id:'inv-'+Date.now(),number:'INV-'+String(invNum).padStart(3,'0'),biz:document.getElementById('iv-biz').value||prefs.bizName,pan:document.getElementById('iv-pan').value||prefs.pan,vatNum:document.getElementById('iv-vat').value||prefs.vat,buyer:document.getElementById('iv-buyer').value||'Customer',date:document.getElementById('iv-date').value||tod(),due:document.getElementById('iv-due').value||'',notes:document.getElementById('iv-notes').value||'',items:[...ivItems],totals:{sub,tax,total},total,status:'unpaid',created:new Date().toISOString()};
 }
-async function saveInvoice(){const inv=getInvData();invoices.unshift(inv);saveLocal();renderInvoices();closeMod('inv-modal');toast(T[lang].saved);if(!isDemo)await pushInvoiceDB(inv);window.print();}
+async function saveInvoice(){
+  const inv=getInvData();invoices.unshift(inv);saveLocal();renderInvoices();closeMod('inv-modal');toast(T[lang].saved);
+  if(!isDemo)await pushInvoiceDB(inv);
+  const pa=document.getElementById('print-area');
+  pa.innerHTML=buildInvHTML(inv);
+  pa.style.display='block';
+  setTimeout(()=>{window.print();setTimeout(()=>{pa.style.display='none';},500);},100);
+}
 function shareInvWA(){
   const{sub,tax,total}=getInvTotals();
   const biz=document.getElementById('iv-biz').value||prefs.bizName;
@@ -1237,7 +1458,13 @@ function renderInvoices(){
 function viewInvoice(id){viewInv=invoices.find(i=>i.id===id);if(!viewInv)return;document.getElementById('ivm-t').innerHTML=`${viewInv.number} <button class="mdc" onclick="closeMod('inv-view-modal')">✕</button>`;document.getElementById('ivm-content').innerHTML=buildInvHTML(viewInv);document.getElementById('ivm-paid').textContent=viewInv.status==='paid'?'Mark Unpaid':'Mark Paid';document.getElementById('inv-view-modal').style.display='flex';}
 function togglePaid(){if(!viewInv)return;viewInv.status=viewInv.status==='paid'?'unpaid':'paid';const idx=invoices.findIndex(i=>i.id===viewInv.id);if(idx>=0)invoices[idx]=viewInv;saveLocal();renderInvoices();viewInvoice(viewInv.id);if(!isDemo)pushInvoiceDB(viewInv);toast(T[lang].upd);}
 function shareViewWA(){if(!viewInv)return;const r=rg();const{sub,tax,total}=viewInv.totals||{sub:0,tax:0,total:0};let lines=[`🧾 *INVOICE — ${viewInv.biz}*`,``,`*Bill To:* ${viewInv.buyer}`,`*${viewInv.number}* | ${viewInv.date}`,``];(viewInv.items||[]).forEach(i=>lines.push(`• ${i.desc||'Item'} × ${i.qty} = ${r.sym} ${Math.round((i.qty||1)*(i.rate||0)).toLocaleString('en')}`));lines.push(``,`*TOTAL: ${r.sym} ${Math.round(total).toLocaleString('en')}*`,viewInv.status==='paid'?`✓ PAID`:``,``,`_Generated by Hisab-Kitab_`);window.open('https://wa.me/?text='+encodeURIComponent(lines.join('\n')),'_blank');}
-function dlPDF(){if(viewInv)window.print();}
+function dlPDF(){
+  if(!viewInv)return;
+  const pa=document.getElementById('print-area');
+  pa.innerHTML=buildInvHTML(viewInv);
+  pa.style.display='block';
+  setTimeout(()=>{window.print();setTimeout(()=>{pa.style.display='none';},500);},100);
+}
 
 // ═══ STOCK ═══
 async function addStock(){
@@ -1343,7 +1570,7 @@ async function askAI(){
 function renderAIMsgs(){const el=document.getElementById('ai-msgs');el.innerHTML=aiHist.map(m=>`<div class="am ${m.role}">${m.content.replace(/\n/g,'<br>')}</div>`).join('');el.scrollTop=el.scrollHeight;}
 
 // ═══ SETTINGS ═══
-function openBizModal(){document.getElementById('m-biz').value=prefs.bizName||'';document.getElementById('m-type').value=prefs.bizType||'retail';document.getElementById('m-addr').value=prefs.bizAddr||'';document.getElementById('m-phone').value=prefs.bizPhone||'';document.getElementById('m-owner').value=prefs.ownerName||'';document.getElementById('biz-modal').style.display='flex';}
+function openBizModal(){document.getElementById('m-biz').value=prefs.bizName||'';document.getElementById('m-type').value=prefs.bizType||'retail';document.getElementById('m-addr').value=prefs.bizAddr||'';document.getElementById('m-phone').value=prefs.bizPhone||'';document.getElementById('m-owner').value=prefs.ownerName||'';document.getElementById('biz-modal').style.display='flex';updateLogoPreview();}
 async function saveBiz(){prefs.bizName=document.getElementById('m-biz').value.trim()||prefs.bizName;prefs.bizType=document.getElementById('m-type').value;prefs.bizAddr=document.getElementById('m-addr').value.trim();prefs.bizPhone=document.getElementById('m-phone').value.trim();prefs.ownerName=document.getElementById('m-owner').value.trim();closeMod('biz-modal');saveLocal();updateUI();toast(T[lang].saved);if(!isDemo)await saveProfile();}
 function exportData(){const data={entries,stocks,customers,invoices,prefs,exportDate:new Date().toISOString()};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='hisab-kitab-'+tod()+'.json';a.click();}
 function clearData(){if(!confirm('Delete ALL data? This cannot be undone.'))return;entries=[];stocks=[];customers=[];invoices=[];aiHist=[];saveLocal();updateUI();toast('All data cleared.');setPage('ledger');}
