@@ -308,6 +308,59 @@ textarea{resize:vertical;min-height:56px}
 .am.user{background:linear-gradient(135deg,var(--g),var(--gd));color:white;align-self:flex-end;max-width:85%;font-weight:600}
 .am.loading{background:var(--s);color:var(--t3);font-style:italic;border:1px solid var(--bdr)}
 
+/* DEPOSITS & UDHARO TAB */
+.dep-card{background:var(--s);border-radius:var(--r2);padding:14px 16px;box-shadow:var(--sh);border:1px solid var(--bdr);margin-bottom:8px;transition:all .2s;cursor:pointer}
+.dep-card:hover{box-shadow:var(--sh2);transform:translateY(-1px)}
+.dep-card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.dep-type{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:3px 10px;border-radius:var(--rf)}
+.dep-type.deposit{background:rgba(129,140,248,.15);color:var(--b)}
+.dep-type.udharo{background:rgba(245,158,11,.12);color:var(--ad)}
+.dep-type.paid{background:rgba(0,200,150,.12);color:var(--gd)}
+.dep-customer{font-size:15px;font-weight:800;color:var(--t)}
+.dep-service{font-size:12px;color:var(--t2);margin-top:2px;font-weight:500}
+.dep-amounts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:10px 0;background:var(--s2);border-radius:var(--r1);padding:10px 12px}
+.dep-amt-item{text-align:center}
+.dep-amt-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--t3);margin-bottom:3px}
+.dep-amt-val{font-size:13px;font-weight:900}
+.dep-bal{font-size:11px;font-weight:700;padding:6px 12px;border-radius:var(--rf);text-align:center;margin-bottom:8px}
+.dep-bal.outstanding{background:rgba(245,158,11,.1);color:var(--ad)}
+.dep-bal.settled{background:rgba(0,200,150,.1);color:var(--gd)}
+.dep-actions{display:flex;gap:6px;flex-wrap:wrap}
+.dep-action-btn{font-size:11px;font-weight:700;padding:6px 11px;border-radius:var(--rf);border:1.5px solid var(--bdr2);background:var(--s);cursor:pointer;font-family:var(--f);transition:all .2s;color:var(--t2)}
+.dep-action-btn:hover{background:var(--s2)}
+.dep-action-btn.primary{background:linear-gradient(135deg,var(--g),var(--gd));color:white;border-color:transparent;box-shadow:0 2px 8px rgba(0,200,150,.25)}
+.dep-action-btn.wa{border-color:rgba(37,211,102,.4);color:#16a34a}
+.dep-action-btn.email{border-color:rgba(99,102,241,.3);color:var(--b)}
+.dep-signed{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--gd);margin-top:6px}
+.dep-tabs{display:flex;gap:0;background:var(--s2);border-radius:var(--r1);padding:3px;margin-bottom:14px;border:1px solid var(--bdr)}
+.dep-tab{flex:1;font-size:12px;font-weight:700;padding:8px;border:none;background:transparent;color:var(--t2);cursor:pointer;font-family:var(--f);border-radius:9px;transition:all .2s;text-align:center}
+.dep-tab.act{background:var(--s);color:var(--t);box-shadow:var(--sh)}
+.udharo-summary{background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.04));border:1px solid rgba(245,158,11,.2);border-radius:var(--r2);padding:14px 16px;margin-bottom:12px}
+.udharo-total{font-size:22px;font-weight:900;color:var(--ad);letter-spacing:-.5px}
+
+/* AGREEMENT MODAL */
+.agree-prev{background:white;font-family:var(--f);color:#0F1130;border-radius:var(--r2);overflow:hidden;border:1px solid #E5E7EB}
+.agree-hdr{background:linear-gradient(135deg,#0F1130,#1E2040);padding:24px;color:white;display:flex;align-items:flex-start;justify-content:space-between}
+.agree-biz-name{font-size:18px;font-weight:900;margin-bottom:4px}
+.agree-biz-sub{font-size:12px;opacity:.6}
+.agree-logo{width:56px;height:56px;border-radius:10px;object-fit:contain;background:white;padding:4px}
+.agree-body{padding:20px}
+.agree-title{font-size:16px;font-weight:800;margin-bottom:16px;color:#0F1130;border-bottom:2px solid #0F1130;padding-bottom:10px}
+.agree-section{margin-bottom:14px}
+.agree-section-title{font-size:11px;font-weight:800;color:#6B7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.agree-clause{font-size:12px;color:#374151;line-height:1.7;margin-bottom:6px;padding-left:14px;position:relative}
+.agree-clause::before{content:'•';position:absolute;left:0;color:#9CA3AF}
+.agree-booking-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0;background:#F9FAFB;border-radius:10px;padding:14px}
+.agree-booking-item{}
+.agree-booking-lbl{font-size:10px;font-weight:800;color:#9CA3AF;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.agree-booking-val{font-size:13px;font-weight:700;color:#0F1130}
+.agree-driver-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.agree-sig-box{margin-top:20px;border-top:2px solid #E5E7EB;padding-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.agree-sig-line{border-bottom:2px solid #0F1130;height:40px;margin-bottom:6px}
+.agree-sig-lbl{font-size:11px;color:#9CA3AF;font-weight:600}
+.agree-footer{background:#F9FAFB;padding:12px 20px;font-size:11px;color:#9CA3AF;text-align:center;border-top:1px solid #E5E7EB}
+.signed-badge{display:inline-flex;align-items:center;gap:5px;background:#dcfaf0;color:#009970;font-size:11px;font-weight:800;padding:4px 12px;border-radius:var(--rf)}
+
 /* SETTINGS */
 .sg{background:var(--s);border-radius:var(--r2);box-shadow:var(--sh);border:1px solid var(--bdr);overflow:hidden;margin-bottom:10px}
 .sgl{font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;padding:0 0 7px 2px}
@@ -602,6 +655,36 @@ textarea{resize:vertical;min-height:56px}
     <div id="cust-list"></div>
   </div>
 
+  <!-- DEPOSITS & UDHARO PAGE -->
+  <div class="page" id="page-deposits">
+    <div class="dep-tabs">
+      <button class="dep-tab act" onclick="setDepTab('deposits')" id="dtab-deposits">🕐 Deposits</button>
+      <button class="dep-tab" onclick="setDepTab('udharo')" id="dtab-udharo">📋 Udharo / Credit</button>
+    </div>
+    <!-- DEPOSITS VIEW -->
+    <div id="dep-view-deposits">
+      <button class="btn" style="margin-bottom:12px" onclick="openNewDeposit()">+ New Deposit / Advance</button>
+      <div class="sh" style="margin-bottom:8px">
+        <div class="st">Active Deposits</div>
+        <div id="dep-total-badge" style="font-size:11px;color:var(--t3);font-weight:800"></div>
+      </div>
+      <div id="dep-list"></div>
+    </div>
+    <!-- UDHARO VIEW -->
+    <div id="dep-view-udharo" style="display:none">
+      <button class="btn" style="margin-bottom:12px" onclick="openNewUdharo()">+ Add Udharo / Credit</button>
+      <div id="udharo-summary-card" style="display:none" class="udharo-summary">
+        <div style="font-size:11px;font-weight:800;color:var(--ad);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Total Outstanding Credit</div>
+        <div class="udharo-total" id="udharo-total">0</div>
+        <div style="font-size:12px;color:var(--t2);margin-top:4px" id="udharo-count"></div>
+      </div>
+      <div class="sh" style="margin-bottom:8px">
+        <div class="st">Udharo Ledger (Credit)</div>
+      </div>
+      <div id="udharo-list"></div>
+    </div>
+  </div>
+
   <!-- AI PAGE -->
   <div class="page" id="page-ai">
     <div id="ai-insights"></div>
@@ -677,12 +760,17 @@ textarea{resize:vertical;min-height:56px}
         <div class="sr dan" onclick="clearData()"><span>Clear All Data</span><span class="sv2" style="color:var(--r)">⚠</span></div>
       </div>
     </div>
+    <div style="margin-bottom:8px"><div class="sgl">Inventory</div>
+      <div class="sg">
+        <div class="sr" onclick="setPage('stock');closeMod('settings-page-hack')"><span id="nl-stock-settings">📦 Stock / Services</span><span class="sv2">→</span></div>
+      </div>
+    </div>
     <div style="margin-bottom:16px"><div class="sgl">App</div>
       <div class="sg">
         <div class="sr" id="install-row" style="display:none" onclick="installPWA()"><span>Install App on Phone</span><span class="sv2">+</span></div>
         <div class="sr" onclick="window.open('index.html')"><span>Home Page / Guide</span><span class="sv2">→</span></div>
         <div class="sr" onclick="window.open('index.html#reviews')"><span>Rate Hisab-Kitab ⭐</span><span class="sv2">→</span></div>
-        <div class="sr"><span>Version</span><span class="sv2">5.1.0</span></div>
+        <div class="sr"><span>Version</span><span class="sv2">5.2.0</span></div>
       </div>
     </div>
     <button class="btn dan" onclick="doSignOut()" id="signout-btn">Sign Out</button>
@@ -704,9 +792,9 @@ textarea{resize:vertical;min-height:56px}
       <svg class="nb-icon" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><polyline points="14 2 14 8 20 8" stroke-width="1.8" stroke-linecap="round"/><line x1="9" y1="13" x2="15" y2="13" stroke-width="1.8" stroke-linecap="round"/><line x1="9" y1="17" x2="12" y2="17" stroke-width="1.8" stroke-linecap="round"/></svg>
       <span id="nl-i">Invoice</span>
     </button>
-    <button class="nb" onclick="setPage('stock')" id="nb-stock">
-      <svg class="nb-icon" id="stock-nb-icon" viewBox="0 0 24 24" fill="none"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" stroke-width="1.8"/><polyline points="3.27 6.96 12 12.01 20.73 6.96" stroke-width="1.8" stroke-linecap="round"/><line x1="12" y1="22.08" x2="12" y2="12" stroke-width="1.8" stroke-linecap="round"/></svg>
-      <span id="nl-s">Stock</span>
+    <button class="nb" onclick="setPage('deposits')" id="nb-deposits">
+      <svg class="nb-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke-width="1.8"/><path d="M12 6v6l4 2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span id="nl-dep">Deposits</span>
     </button>
     <button class="nb" onclick="setPage('customers')" id="nb-customers">
       <svg class="nb-icon" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="1.8" stroke-linecap="round"/><circle cx="9" cy="7" r="4" stroke-width="1.8"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-width="1.8" stroke-linecap="round"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -962,6 +1050,10 @@ let user=null,isDemo=false,deferredInstall=null;
 let ivItems=[{id:1,desc:'',qty:1,rate:0}],viewInv=null;
 let invNum=parseInt(localStorage.getItem('hk_inv_num')||'0');
 let wsInviteCode=null;
+let deposits=[]; // {id, type:'deposit'|'udharo', customer, phone, email, service, total, depositAmt, balance, due, start, end, notes, vehicle, rego, pickup, pickupTime, dropoff, destination, security, signed, signedDate, agreementData, created}
+let udharos=[];  // {id, customer, phone, item, amount, paid, date, duedate, notes, created}
+let currentDepositId=null; // for agreement linking
+let agreementTerms=[]; // editable terms array
 
 // ═══════════════════════════════════════════
 // UTILS
@@ -1060,8 +1152,25 @@ function buildStockForm(){
 }
 
 // LOCAL CACHE
-function saveLocal(){try{localStorage.setItem('hk_e',JSON.stringify(entries));localStorage.setItem('hk_s',JSON.stringify(stocks));localStorage.setItem('hk_c',JSON.stringify(customers));localStorage.setItem('hk_i',JSON.stringify(invoices));localStorage.setItem('hk_p',JSON.stringify(prefs));}catch(e){}}
-function loadLocal(){try{entries=JSON.parse(localStorage.getItem('hk_e')||'[]');stocks=JSON.parse(localStorage.getItem('hk_s')||'[]');customers=JSON.parse(localStorage.getItem('hk_c')||'[]');invoices=JSON.parse(localStorage.getItem('hk_i')||'[]');const p=JSON.parse(localStorage.getItem('hk_p')||'{}');prefs={...prefs,...p};}catch(e){}}
+function saveLocal(){try{
+  localStorage.setItem('hk_e',JSON.stringify(entries));
+  localStorage.setItem('hk_s',JSON.stringify(stocks));
+  localStorage.setItem('hk_c',JSON.stringify(customers));
+  localStorage.setItem('hk_i',JSON.stringify(invoices));
+  localStorage.setItem('hk_d',JSON.stringify(deposits));
+  localStorage.setItem('hk_u',JSON.stringify(udharos));
+  localStorage.setItem('hk_p',JSON.stringify(prefs));
+}catch(e){}}
+function loadLocal(){try{
+  entries=JSON.parse(localStorage.getItem('hk_e')||'[]');
+  stocks=JSON.parse(localStorage.getItem('hk_s')||'[]');
+  customers=JSON.parse(localStorage.getItem('hk_c')||'[]');
+  invoices=JSON.parse(localStorage.getItem('hk_i')||'[]');
+  deposits=JSON.parse(localStorage.getItem('hk_d')||'[]');
+  udharos=JSON.parse(localStorage.getItem('hk_u')||'[]');
+  const p=JSON.parse(localStorage.getItem('hk_p')||'{}');
+  prefs={...prefs,...p};
+}catch(e){}}
 
 // AUTH
 let authTab='login',suStep=1;
@@ -1122,10 +1231,21 @@ function doDemo(){
   customers=JSON.parse(JSON.stringify(DEMO.customers));
   invoices=JSON.parse(JSON.stringify(DEMO.invoices));
   prefs={...prefs,...DEMO.prefs};
+  // Demo deposits
+  const tod2=new Date().toISOString().split('T')[0];
+  const fut=new Date(Date.now()+7*86400000).toISOString().split('T')[0];
+  deposits=[
+    {id:'dd1',type:'deposit',customer:'Ram Bahadur Shrestha',phone:'9841234567',email:'ram@example.com',service:'Pokhara Tour Package 5D/4N',total:25000,depositAmt:5000,balance:20000,due:fut,start:fut,end:'',notes:'Family trip of 4',vehicle:'',rego:'',pickup:'Kathmandu Office',pickupTime:'06:00',dropoff:'Return Kathmandu',destination:'Pokhara Tour',security:0,signed:false,signedDate:null,agreementData:null,created:new Date().toISOString()},
+    {id:'dd2',type:'deposit',customer:'Sita Devi Tamang',phone:'9851234567',email:'',service:'Hair Colour & Treatment',total:3500,depositAmt:1000,balance:2500,due:tod2,start:tod2,end:'',notes:'Appointment confirmed',signed:true,signedDate:tod2,created:new Date(Date.now()-2*86400000).toISOString()},
+  ];
+  udharos=[
+    {id:'ud1',customer:'Hari Prasad Sharma',phone:'9861234567',item:'Monthly grocery supplies',amount:4500,paid:0,date:new Date(Date.now()-5*86400000).toISOString().split('T')[0],duedate:fut,notes:'Regular customer',created:new Date(Date.now()-5*86400000).toISOString()},
+    {id:'ud2',customer:'Bishnu Prasad KC',phone:'9871234567',item:'Rice 20kg + Oil',amount:2800,paid:1000,date:new Date(Date.now()-10*86400000).toISOString().split('T')[0],duedate:tod2,notes:'Partial payment received',created:new Date(Date.now()-10*86400000).toISOString()},
+  ];
   showApp();
 }
 function showAuth(){document.getElementById('app').style.display='none';document.getElementById('bn').style.display='none';document.getElementById('demo-banner').style.display='none';document.getElementById('as').style.display='flex';}
-function doSignOut(){localStorage.removeItem('hk_token');localStorage.removeItem('hk_refresh');user=null;isDemo=false;entries=[];stocks=[];customers=[];invoices=[];aiHist=[];showAuth();}
+function doSignOut(){localStorage.removeItem('hk_token');localStorage.removeItem('hk_refresh');user=null;isDemo=false;entries=[];stocks=[];customers=[];invoices=[];deposits=[];udharos=[];aiHist=[];showAuth();}
 
 // CLOUD SYNC
 async function syncCloud(){
@@ -1195,6 +1315,11 @@ function updateUI(){
   if(prefs.vat){const vv=document.getElementById('iv-vat');if(vv&&!vv.value)vv.value=prefs.vat;}
   const signoutBtn=document.getElementById('signout-btn');if(signoutBtn)signoutBtn.textContent=isDemo?'Exit Demo Mode':'Sign Out';
   updateWsUI();
+  // Update deposits badge in nav if any outstanding
+  const nbDep=document.getElementById('nb-deposits');
+  if(nbDep){const outstanding=deposits.filter(d=>d.balance>0).length+udharos.filter(u=>u.amount-u.paid>0).length;const existing=nbDep.querySelector('.nbg');if(outstanding>0){if(!existing){const bg=document.createElement('div');bg.className='nbg';bg.id='dep-nav-badge';bg.textContent=outstanding;nbDep.appendChild(bg);}else{existing.textContent=outstanding;}}else if(existing)existing.remove();}
+  // Show travel fields in deposit modal based on mode
+  const tf=document.getElementById('nd-travel-fields');if(tf)tf.style.display=prefs.businessMode==='travel'||prefs.businessMode==='transport'||prefs.businessMode==='construction'?'block':'none';
 }
 
 function showApp(){
@@ -1219,10 +1344,13 @@ const T={
   ne:{inc:'आम्दानी',exp:'खर्च',bal:'मौज्दात',cin:'पैसा आयो',cout:'पैसा गयो',desc:'विवरण',amt:'रकम',cat:'श्रेणी',date:'मिति',note:'टिप्पणी',add:'+ थप्नुहोस्',dep:'डिपोजिट',entries:'लेनदेन',share:'पठाउनुहोस्',today:'आज',week:'यो हप्ता',month:'यो महिना',all:'सबै',saved:'सेभ भयो ✓',del:'मेटियो',upd:'अपडेट भयो ✓',l:'हिसाब',r:'रिपोर्ट',i:'बिल',c:'ग्राहक',a:'AI',aiT:'आफ्नो व्यापार सल्लाहकारलाई सोध्नुहोस्',chips:['मेरो व्यापार कस्तो छ?','सबैभन्दा बढी खर्च?','पैसा बचाउने तरिका?','नाफामा छु?','स्टक अर्डर?'],noE:'अहिलेसम्म कुनै लेनदेन छैन।',noC:'कुनै ग्राहक छैन।',noI:'कुनै बिल छैन।'},
 };
 function setLang(l){lang=l;localStorage.setItem('hk_lang',l);['lb-en','s-lb-en'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('act',l==='en');});['lb-ne','s-lb-ne'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.toggle('act',l==='ne');});applyLang();}
-function applyLang(){const s=T[lang];const m={'l-inc':s.inc,'l-exp':s.exp,'l-bal':s.bal,'l-cin':s.cin,'l-cout':s.cout,'l-desc':s.desc,'l-amt':s.amt,'l-cat':s.cat,'l-date':s.date,'l-note':s.note,'add-btn':s.add,'l-dep':s.dep||'Deposit','l-share':s.share,'ai-title':s.aiT,'nl-l':s.l,'nl-r':s.r,'nl-i':s.i,'nl-c':s.c,'nl-a':s.a};Object.entries(m).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.textContent=val;});updateFilterLabels();if(activePage==='ai')renderChips();}
+function applyLang(){const s=T[lang];const m={'l-inc':s.inc,'l-exp':s.exp,'l-bal':s.bal,'l-cin':s.cin,'l-cout':s.cout,'l-desc':s.desc,'l-amt':s.amt,'l-cat':s.cat,'l-date':s.date,'l-note':s.note,'add-btn':s.add,'l-dep':s.dep||'Deposit','l-share':s.share,'ai-title':s.aiT,'nl-l':s.l,'nl-r':s.r,'nl-i':s.i,'nl-dep':'Deposits','nl-c':s.c,'nl-a':s.a};Object.entries(m).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.textContent=val;});updateFilterLabels();if(activePage==='ai')renderChips();}
 
 // ═══ NAVIGATION ═══
-function setPage(p){activePage=p;['ledger','report','invoice','stock','customers','ai','settings'].forEach(k=>{const pg=document.getElementById('page-'+k),nb=document.getElementById('nb-'+k);if(pg)pg.classList.toggle('act',k===p);if(nb)nb.classList.toggle('act',k===p);});if(p==='report')renderReport();if(p==='ai'){renderInsights();renderChips();}if(p==='invoice')renderInvoices();}
+function setPage(p){activePage=p;['ledger','report','invoice','deposits','stock','customers','ai','settings'].forEach(k=>{const pg=document.getElementById('page-'+k),nb=document.getElementById('nb-'+k);if(pg)pg.classList.toggle('act',k===p);if(nb)nb.classList.toggle('act',k===p);});if(p==='report')renderReport();if(p==='ai'){renderInsights();renderChips();}if(p==='invoice')renderInvoices();if(p==='deposits')renderDepositsPage();
+// make settings accessible when stock nav is gone
+const nbDep=document.getElementById('nb-deposits');if(nbDep)nbDep.classList.toggle('act',p==='deposits');
+}
 
 // ═══ LEDGER ═══
 function getFiltered(){const now=new Date(),q=(document.getElementById('search')?.value||'').toLowerCase();return entries.filter(e=>{if(filter==='today'&&e.date!==tod())return false;if(filter==='week'){const d=new Date(e.date);if((now-d)/86400000<0||(now-d)/86400000>=7)return false;}if(filter==='month'){const d=new Date(e.date);if(d.getMonth()!==now.getMonth()||d.getFullYear()!==now.getFullYear())return false;}if(q&&!(e.desc||e.description||'').toLowerCase().includes(q)&&!e.category.toLowerCase().includes(q))return false;return true;});}
@@ -1617,6 +1745,479 @@ async function checkAuth(){
   document.getElementById('as').style.display='flex';
 }
 
+// ═══════════════════════════════════════════
+// DEPOSITS & UDHARO TAB
+// ═══════════════════════════════════════════
+
+let depTabActive='deposits';
+function setDepTab(t){
+  depTabActive=t;
+  document.getElementById('dtab-deposits').classList.toggle('act',t==='deposits');
+  document.getElementById('dtab-udharo').classList.toggle('act',t==='udharo');
+  document.getElementById('dep-view-deposits').style.display=t==='deposits'?'block':'none';
+  document.getElementById('dep-view-udharo').style.display=t==='udharo'?'block':'none';
+  if(t==='udharo')renderUdharo();
+}
+
+function renderDepositsPage(){
+  renderDeposits();
+  renderUdharo();
+  // Show travel fields if travel mode
+  const tf=document.getElementById('nd-travel-fields');
+  if(tf)tf.style.display=prefs.businessMode==='travel'||prefs.businessMode==='transport'||prefs.businessMode==='construction'?'block':'none';
+}
+
+function calcDepBalance(){
+  const total=parseFloat(document.getElementById('nd-total')?.value)||0;
+  const dep=parseFloat(document.getElementById('nd-deposit')?.value)||0;
+  const bal=document.getElementById('nd-balance');
+  if(bal&&total>0)bal.value=Math.max(0,total-dep).toFixed(2);
+}
+
+function openNewDeposit(){
+  const tf=document.getElementById('nd-travel-fields');
+  if(tf)tf.style.display=prefs.businessMode==='travel'||prefs.businessMode==='transport'||prefs.businessMode==='construction'?'block':'none';
+  document.getElementById('nd-customer').value='';document.getElementById('nd-phone').value='';document.getElementById('nd-email').value='';
+  document.getElementById('nd-service').value='';document.getElementById('nd-total').value='';document.getElementById('nd-deposit').value='';
+  document.getElementById('nd-balance').value='';document.getElementById('nd-notes').value='';
+  ['nd-due','nd-start','nd-end'].forEach(id=>{const el=document.getElementById(id);if(el)el.valueAsDate=new Date();});
+  ['nd-vehicle','nd-rego','nd-pickup','nd-pickup-time','nd-dropoff','nd-destination','nd-security'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('new-dep-title').textContent='New Deposit / Advance';
+  document.getElementById('new-dep-modal').style.display='flex';
+}
+
+function openNewUdharo(){
+  ['ud-customer','ud-phone','ud-item','ud-amount','ud-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const eld=document.getElementById('ud-date');if(eld)eld.valueAsDate=new Date();
+  document.getElementById('new-udharo-modal').style.display='flex';
+}
+
+function saveDeposit(openAgreement){
+  const customer=document.getElementById('nd-customer').value.trim();
+  const service=document.getElementById('nd-service').value.trim();
+  const depositAmt=parseFloat(document.getElementById('nd-deposit').value)||0;
+  if(!customer||!service||depositAmt<=0){toast('Please fill customer, service, and deposit amount');return;}
+  const total=parseFloat(document.getElementById('nd-total').value)||0;
+  const balance=Math.max(0,total-depositAmt);
+  const dep={
+    id:'dep-'+Date.now(),type:'deposit',
+    customer,phone:document.getElementById('nd-phone').value.trim(),
+    email:document.getElementById('nd-email').value.trim(),
+    service,total,depositAmt,balance,
+    due:document.getElementById('nd-due').value||'',
+    start:document.getElementById('nd-start').value||'',
+    end:document.getElementById('nd-end').value||'',
+    notes:document.getElementById('nd-notes').value.trim(),
+    vehicle:document.getElementById('nd-vehicle')?.value.trim()||'',
+    rego:document.getElementById('nd-rego')?.value.trim()||'',
+    pickup:document.getElementById('nd-pickup')?.value.trim()||'',
+    pickupTime:document.getElementById('nd-pickup-time')?.value||'',
+    dropoff:document.getElementById('nd-dropoff')?.value.trim()||'',
+    destination:document.getElementById('nd-destination')?.value.trim()||'',
+    security:parseFloat(document.getElementById('nd-security')?.value)||0,
+    signed:false,signedDate:null,agreementData:null,
+    created:new Date().toISOString()
+  };
+  deposits.unshift(dep);saveLocal();
+  // Also record in ledger as a deposit entry
+  const entry={id:'tmp-'+Date.now(),desc:`[DEPOSIT] ${service} — ${customer}`,amount:depositAmt,type:'in',category:'Deposit',date:dep.start||tod(),note:`Total: ${fmt(total)} | Balance: ${fmt(balance)} | Due: ${dep.due||'TBD'}`,isDeposit:true};
+  entries.unshift(entry);saveLocal();updateSummary();renderEntries();
+  closeMod('new-dep-modal');renderDeposits();toast('Deposit saved ✓');
+  if(openAgreement)openAgreementBuilder(dep.id);
+}
+
+function saveUdharo(){
+  const customer=document.getElementById('ud-customer').value.trim();
+  const item=document.getElementById('ud-item').value.trim();
+  const amount=parseFloat(document.getElementById('ud-amount').value)||0;
+  if(!customer||!item||amount<=0){toast('Please fill customer, item, and amount');return;}
+  const ud={
+    id:'ud-'+Date.now(),
+    customer,phone:document.getElementById('ud-phone').value.trim(),
+    item,amount,paid:0,
+    date:document.getElementById('ud-date').value||tod(),
+    duedate:document.getElementById('ud-duedate').value||'',
+    notes:document.getElementById('ud-notes').value.trim(),
+    created:new Date().toISOString()
+  };
+  udharos.unshift(ud);saveLocal();closeMod('new-udharo-modal');renderUdharo();toast('Udharo added ✓');
+}
+
+function renderDeposits(){
+  const el=document.getElementById('dep-list');if(!el)return;
+  const badge=document.getElementById('dep-total-badge');
+  const outstanding=deposits.filter(d=>!d.signed||(d.balance>0));
+  const totalPending=deposits.reduce((s,d)=>s+(d.balance||0),0);
+  if(badge&&deposits.length)badge.textContent=`${deposits.length} total · ${fmt(totalPending)} outstanding`;
+  if(!deposits.length){el.innerHTML=`<div class="es"><div class="es-icon" style="font-size:44px;opacity:.25">🕐</div><div class="es-t">No deposits yet</div><div class="es-s">Tap "+ New Deposit" to track advance payments and bookings.</div></div>`;return;}
+  el.innerHTML=deposits.map(d=>{
+    const isSettled=d.balance<=0;
+    const sym=rg().sym;
+    return`<div class="dep-card" onclick="openDepDetail('${d.id}')">
+      <div class="dep-card-hdr">
+        <div>
+          <div class="dep-customer">${d.customer}</div>
+          <div class="dep-service">${d.service}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="dep-type ${isSettled?'paid':'deposit'}">${isSettled?'✓ Settled':'Deposit'}</div>
+          ${d.signed?'<div class="dep-signed" style="margin-top:4px">✅ Agreement Signed</div>':''}
+        </div>
+      </div>
+      <div class="dep-amounts">
+        <div class="dep-amt-item"><div class="dep-amt-lbl">Total</div><div class="dep-amt-val">${d.total>0?fmt(d.total):'—'}</div></div>
+        <div class="dep-amt-item"><div class="dep-amt-lbl">Deposit Paid</div><div class="dep-amt-val" style="color:var(--g)">${fmt(d.depositAmt)}</div></div>
+        <div class="dep-amt-item"><div class="dep-amt-lbl">Balance Due</div><div class="dep-amt-val" style="color:${isSettled?'var(--gd)':'var(--r)'}">${fmt(d.balance)}</div></div>
+      </div>
+      ${d.due?`<div class="dep-bal ${isSettled?'settled':'outstanding'}">${isSettled?'✓ Fully Paid':'Balance due: '+d.due}</div>`:''}
+      <div class="dep-actions" onclick="event.stopPropagation()">
+        <button class="dep-action-btn primary" onclick="openAgreementBuilder('${d.id}')">📄 Agreement</button>
+        ${d.phone?`<button class="dep-action-btn wa" onclick="depWhatsApp('${d.id}')">📱 WA</button>`:''}
+        ${d.email?`<button class="dep-action-btn email" onclick="depEmail('${d.id}')">✉️ Email</button>`:''}
+        ${!isSettled?`<button class="dep-action-btn" onclick="depMarkPaid('${d.id}')">Mark Paid</button>`:''}
+        ${!d.signed?`<button class="dep-action-btn" onclick="depMarkSigned('${d.id}')">✅ Signed</button>`:''}
+        <button class="dep-action-btn" style="color:var(--r)" onclick="depDelete('${d.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openDepDetail(id){
+  const dep=deposits.find(d=>d.id===id);if(!dep)return;
+  currentDepositId=id;
+  const sym=rg().sym;
+  document.getElementById('ddm-title').textContent=dep.service;
+  document.getElementById('ddm-content').innerHTML=`
+    <div style="background:var(--s2);border-radius:var(--r1);padding:14px;margin-bottom:12px">
+      <div style="font-size:16px;font-weight:800;margin-bottom:2px">${dep.customer}</div>
+      <div style="font-size:13px;color:var(--t2)">${dep.phone?'📞 '+dep.phone:''} ${dep.email?'✉️ '+dep.email:''}</div>
+    </div>
+    <div class="dep-amounts" style="margin-bottom:10px">
+      <div class="dep-amt-item"><div class="dep-amt-lbl">Total</div><div class="dep-amt-val">${dep.total>0?fmt(dep.total):'—'}</div></div>
+      <div class="dep-amt-item"><div class="dep-amt-lbl">Paid</div><div class="dep-amt-val" style="color:var(--g)">${fmt(dep.depositAmt)}</div></div>
+      <div class="dep-amt-item"><div class="dep-amt-lbl">Balance</div><div class="dep-amt-val" style="color:${dep.balance<=0?'var(--gd)':'var(--r)'}">${fmt(dep.balance)}</div></div>
+    </div>
+    ${dep.start?`<div style="font-size:12px;color:var(--t2);margin-bottom:4px">📅 ${dep.start}${dep.end?' → '+dep.end:''}</div>`:''}
+    ${dep.vehicle?`<div style="font-size:12px;color:var(--t2);margin-bottom:4px">🚗 ${dep.vehicle}${dep.rego?' ('+dep.rego+')':''}</div>`:''}
+    ${dep.destination?`<div style="font-size:12px;color:var(--t2);margin-bottom:4px">📍 ${dep.destination}</div>`:''}
+    ${dep.notes?`<div style="font-size:12px;color:var(--t3);margin-top:8px;font-style:italic">${dep.notes}</div>`:''}
+    ${dep.signed?`<div class="signed-badge" style="margin-top:10px">✅ Agreement signed ${dep.signedDate?'on '+dep.signedDate:''}</div>`:''}
+  `;
+  document.getElementById('ddm-actions').innerHTML=`
+    <button class="dep-action-btn primary" onclick="openAgreementBuilder('${id}');closeMod('dep-detail-modal')">📄 View / Send Agreement</button>
+    ${dep.phone?`<button class="dep-action-btn wa" onclick="depWhatsApp('${id}')">📱 WhatsApp</button>`:''}
+    ${dep.email?`<button class="dep-action-btn email" onclick="depEmail('${id}')">✉️ Email</button>`:''}
+    ${dep.balance>0?`<button class="dep-action-btn" onclick="depMarkPaid('${id}');closeMod('dep-detail-modal')">💰 Mark Fully Paid</button>`:''}
+    ${!dep.signed?`<button class="dep-action-btn" onclick="depMarkSigned('${id}');closeMod('dep-detail-modal')">✅ Mark Agreement Signed</button>`:''}
+  `;
+  document.getElementById('dep-detail-modal').style.display='flex';
+}
+
+function depMarkPaid(id){const dep=deposits.find(d=>d.id===id);if(!dep)return;dep.balance=0;dep.depositAmt=dep.total||dep.depositAmt;saveLocal();renderDeposits();toast('Marked as fully paid ✓');}
+function depMarkSigned(id){const dep=deposits.find(d=>d.id===id);if(!dep)return;dep.signed=true;dep.signedDate=tod();saveLocal();renderDeposits();toast('Agreement marked as signed ✓');}
+function markSigned(){if(currentDepositId)depMarkSigned(currentDepositId);closeMod('agree-preview-modal');}
+function depDelete(id){if(!confirm('Delete this deposit?'))return;deposits=deposits.filter(d=>d.id!==id);saveLocal();renderDeposits();toast('Deleted');}
+
+function depWhatsApp(id){
+  const dep=deposits.find(d=>d.id===id);if(!dep)return;
+  const r=rg();
+  const lines=[
+    `📋 *Booking Confirmation*`,``,
+    `*${prefs.bizName}*`,``,
+    `*Customer:* ${dep.customer}`,
+    `*Service:* ${dep.service}`,
+    dep.start?`*Date:* ${dep.start}${dep.end?' to '+dep.end:''}`:'',
+    dep.vehicle?`*Vehicle/Package:* ${dep.vehicle}${dep.rego?' ('+dep.rego+')':''}`:'',
+    dep.destination?`*Destination:* ${dep.destination}`:'',``,
+    `*Total Amount:* ${dep.total>0?fmt(dep.total):'TBD'}`,
+    `*Deposit Paid:* ${fmt(dep.depositAmt)}`,
+    dep.balance>0?`*Balance Due:* ${fmt(dep.balance)}${dep.due?' by '+dep.due:''}`:'*Fully Paid ✓*',
+    dep.notes?`
+_Note: ${dep.notes}_`:'',``,
+    `_Generated by Hisab-Kitab_`
+  ].filter(Boolean);
+  window.open('https://wa.me/'+dep.phone.replace(/[^0-9]/g,'')+'?text='+encodeURIComponent(lines.join('\n')),'_blank');
+}
+
+function depEmail(id){
+  const dep=deposits.find(d=>d.id===id);if(!dep)return;
+  const subject=encodeURIComponent(`Booking Confirmation — ${dep.service}`);
+  const body=encodeURIComponent([
+    `Dear ${dep.customer},`,``,
+    `Thank you for your booking with ${prefs.bizName}.`,``,
+    `Service: ${dep.service}`,
+    dep.start?`Date: ${dep.start}${dep.end?' to '+dep.end:''}`:null,
+    dep.vehicle?`Vehicle: ${dep.vehicle}${dep.rego?' ('+dep.rego+')':''}`:null,
+    ``,`Total Amount: ${dep.total>0?fmt(dep.total):'TBD'}`,
+    `Deposit Paid: ${fmt(dep.depositAmt)}`,
+    dep.balance>0?`Balance Due: ${fmt(dep.balance)}${dep.due?' by '+dep.due:''}`:null,
+    ``,`Regards,`,prefs.bizName
+  ].filter(Boolean).join('\n'));
+  window.location.href=`mailto:${dep.email}?subject=${subject}&body=${body}`;
+}
+
+function renderUdharo(){
+  const el=document.getElementById('udharo-list');if(!el)return;
+  const sc=document.getElementById('udharo-summary-card');
+  const outstanding=udharos.filter(u=>u.amount-u.paid>0);
+  const totalOwed=udharos.reduce((s,u)=>s+(u.amount-u.paid),0);
+  if(sc){sc.style.display=udharos.length?'block':'none';const tt=document.getElementById('udharo-total');if(tt)tt.textContent=fmt(totalOwed);const cnt=document.getElementById('udharo-count');if(cnt)cnt.textContent=`Across ${outstanding.length} customer${outstanding.length!==1?'s':''}`;}
+  if(!udharos.length){el.innerHTML=`<div class="es"><div class="es-icon" style="font-size:44px;opacity:.25">📋</div><div class="es-t">No udharo records</div><div class="es-s">Track credit given to customers. Add udharo entries when customers take goods or services on credit.</div></div>`;return;}
+  el.innerHTML=udharos.map(u=>{
+    const balance=u.amount-u.paid;
+    const isSettled=balance<=0;
+    return`<div class="dep-card">
+      <div class="dep-card-hdr">
+        <div><div class="dep-customer">${u.customer}</div><div class="dep-service">${u.item}</div></div>
+        <div class="dep-type ${isSettled?'paid':'udharo'}">${isSettled?'✓ Cleared':'Udharo'}</div>
+      </div>
+      <div class="dep-amounts">
+        <div class="dep-amt-item"><div class="dep-amt-lbl">Owed</div><div class="dep-amt-val" style="color:var(--r)">${fmt(u.amount)}</div></div>
+        <div class="dep-amt-item"><div class="dep-amt-lbl">Paid Back</div><div class="dep-amt-val" style="color:var(--g)">${fmt(u.paid)}</div></div>
+        <div class="dep-amt-item"><div class="dep-amt-lbl">Balance</div><div class="dep-amt-val" style="color:${isSettled?'var(--gd)':'var(--ad)'}">${fmt(balance)}</div></div>
+      </div>
+      ${u.duedate?`<div class="dep-bal ${isSettled?'settled':'outstanding'}">${isSettled?'✓ Cleared':'Due: '+u.duedate}</div>`:''}
+      <div class="dep-actions">
+        ${u.phone?`<button class="dep-action-btn wa" onclick="udharoWA('${u.id}')">📱 Remind</button>`:''}
+        ${!isSettled?`<button class="dep-action-btn primary" onclick="udharoPartialPay('${u.id}')">Record Payment</button>`:''}
+        <button class="dep-action-btn" style="color:var(--r)" onclick="udharoDelete('${u.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function udharoWA(id){
+  const u=udharos.find(x=>x.id===id);if(!u)return;
+  const bal=u.amount-u.paid;
+  const msg=[`नमस्ते ${u.customer} जी,`,``,`${prefs.bizName} तर्फबाट सम्झाउँदछौं।`,``,`Item: ${u.item}`,`Total: ${fmt(u.amount)}`,`Paid: ${fmt(u.paid)}`,`*Balance: ${fmt(bal)}*`,u.duedate?`Due Date: ${u.duedate}`:'',``,`कृपया भुक्तानी गर्नुहोस् धन्यवाद।`,``,`_Hisab-Kitab_`].filter(Boolean).join('\n');
+  window.open('https://wa.me/'+u.phone.replace(/[^0-9]/g,'')+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+function udharoPartialPay(id){
+  const u=udharos.find(x=>x.id===id);if(!u)return;
+  const amt=parseFloat(prompt(`${u.customer} — Record payment:\nBalance: ${fmt(u.amount-u.paid)}\nHow much did they pay?`));
+  if(!amt||amt<=0)return;
+  u.paid=Math.min(u.amount,u.paid+amt);
+  // Also add as cash in
+  entries.unshift({id:'tmp-'+Date.now(),desc:`[UDHARO PAYMENT] ${u.item} — ${u.customer}`,amount:amt,type:'in',category:'Sales',date:tod(),note:`Udharo payment, balance: ${fmt(u.amount-u.paid)}`});
+  saveLocal();renderUdharo();updateSummary();renderEntries();toast(`Payment of ${fmt(amt)} recorded ✓`);
+}
+
+function udharoDelete(id){if(!confirm('Delete this udharo record?'))return;udharos=udharos.filter(u=>u.id!==id);saveLocal();renderUdharo();}
+
+// ═══════════════════════════════════════════
+// AGREEMENT BUILDER
+// ═══════════════════════════════════════════
+
+// Default terms by business mode
+const DEFAULT_TERMS={
+  travel:[
+    'The customer is responsible for all fuel, toll, and road charges during the rental period unless stated otherwise.',
+    'The vehicle will be provided clean and in good condition. Please return it in the same condition.',
+    'A valid full driving licence is required. Driver must be 25 years or above.',
+    'Please provide emergency contact details (name and phone number).',
+    'We encourage you to take photos/videos of the vehicle at pickup and return.',
+    'Any insurance excess or damage liability applies as per the agreement.',
+    'By signing this agreement, you accept the Terms and Conditions of '+'{BIZ}+'.'
+  ],
+  construction:[
+    'An advance payment is required before commencement of work.',
+    'All materials will be sourced as agreed. Any changes to specifications may affect the final cost.',
+    'The completion date is subject to weather, material availability, and site conditions.',
+    'Any variation to the original scope will be quoted separately and requires written approval.',
+    'Final payment is due upon completion of work to the client's satisfaction.',
+    'A defects liability period applies as per the agreed contract.'
+  ],
+  salon:[
+    'A booking deposit is required to confirm your appointment.',
+    'Cancellations must be made at least 24 hours in advance to receive a deposit refund.',
+    'Late arrivals may result in a shorter appointment time.',
+    'Please inform us of any allergies or sensitivities before your appointment.',
+    'The deposit will be applied to your final service charge.'
+  ],
+  property:[
+    'The security deposit will be held for the duration of the agreement.',
+    'The property must be returned in the same condition as received.',
+    'Rent is due on the agreed date each month/period.',
+    'Any damage beyond normal wear and tear will be deducted from the security deposit.',
+    'A minimum notice period is required before vacating the property.'
+  ],
+  default:[
+    'Payment of the deposit confirms your booking.',
+    'The balance is due by the agreed date.',
+    'Cancellation policy applies as discussed.',
+    'By signing this agreement, both parties agree to the terms stated.'
+  ]
+};
+
+function getDefaultTerms(){
+  const mode=prefs.businessMode;
+  const terms=DEFAULT_TERMS[mode]||DEFAULT_TERMS.default;
+  return terms.map(t=>t.replace('{BIZ}',prefs.bizName||'our company'));
+}
+
+function openAgreementBuilder(depId){
+  currentDepositId=depId;
+  const dep=deposits.find(d=>d.id===depId);if(!dep)return;
+  const r=rg();
+  // Pre-fill from deposit
+  document.getElementById('ag-biz').value=prefs.bizName||'';
+  document.getElementById('ag-addr').value=prefs.bizAddr||'';
+  document.getElementById('ag-phone').value=prefs.bizPhone||'';
+  document.getElementById('ag-title').value=prefs.businessMode==='travel'?'Vehicle Hire & Service Agreement':prefs.businessMode==='construction'?'Construction Service Agreement':prefs.businessMode==='salon'?'Appointment & Service Agreement':'Service Agreement';
+  document.getElementById('ag-service').value=dep.vehicle||dep.service||'';
+  document.getElementById('ag-rego').value=dep.rego||'';
+  document.getElementById('ag-start').value=dep.start||'';
+  document.getElementById('ag-end').value=dep.end||'';
+  document.getElementById('ag-pickup').value=dep.pickup?(dep.pickup+(dep.pickupTime?' '+dep.pickupTime:'')):dep.start||'';
+  document.getElementById('ag-dropoff').value=dep.dropoff||(dep.end?'Before 5PM on '+dep.end:'');
+  document.getElementById('ag-dep-paid').value=fmt(dep.depositAmt)+' on '+tod();
+  document.getElementById('ag-security').value=dep.security>0?fmt(dep.security):'';
+  document.getElementById('ag-balance').value=dep.balance>0?(fmt(dep.balance)+' due by '+(dep.due||'TBD')):'Fully Paid';
+  document.getElementById('ag-client-name').value=dep.customer||'';
+  document.getElementById('ag-client-phone').value=dep.phone||'';
+  document.getElementById('ag-licence').value='';
+  document.getElementById('ag-client-addr').value='';
+  document.getElementById('ag-ec-name').value='';
+  document.getElementById('ag-ec-phone').value='';
+  // Build terms list
+  agreementTerms=[...getDefaultTerms()];
+  renderAgreementTerms();
+  closeMod('dep-detail-modal');
+  document.getElementById('agreement-modal').style.display='flex';
+}
+
+function renderAgreementTerms(){
+  const el=document.getElementById('ag-terms-list');if(!el)return;
+  el.innerHTML=agreementTerms.map((t,i)=>`<div style="display:flex;align-items:flex-start;gap:8px;background:var(--s2);border-radius:var(--r1);padding:8px 10px;border:1px solid var(--bdr)">
+    <span style="font-size:12px;font-weight:800;color:var(--t3);flex-shrink:0;margin-top:2px">${i+1}.</span>
+    <textarea style="flex:1;min-height:44px;font-size:12px;border:none;background:transparent;resize:vertical;padding:0;color:var(--t)" oninput="agreementTerms[${i}]=this.value">${t}</textarea>
+    <button onclick="agreementTerms.splice(${i},1);renderAgreementTerms()" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:0;flex-shrink:0">✕</button>
+  </div>`).join('');
+}
+
+function addAgreementTerm(){
+  agreementTerms.push('New term — click to edit');
+  renderAgreementTerms();
+  const el=document.getElementById('ag-terms-list');if(el)el.scrollTop=el.scrollHeight;
+}
+
+function buildAgreementHTML(){
+  const dep=currentDepositId?deposits.find(d=>d.id===currentDepositId):null;
+  const bizName=document.getElementById('ag-biz').value||prefs.bizName;
+  const bizAddr=document.getElementById('ag-addr').value||prefs.bizAddr;
+  const bizPhone=document.getElementById('ag-phone').value||prefs.bizPhone;
+  const title=document.getElementById('ag-title').value||'Service Agreement';
+  const service=document.getElementById('ag-service').value;
+  const rego=document.getElementById('ag-rego').value;
+  const start=document.getElementById('ag-start').value;
+  const end=document.getElementById('ag-end').value;
+  const pickup=document.getElementById('ag-pickup').value;
+  const dropoff=document.getElementById('ag-dropoff').value;
+  const depPaid=document.getElementById('ag-dep-paid').value;
+  const security=document.getElementById('ag-security').value;
+  const balance=document.getElementById('ag-balance').value;
+  const clientName=document.getElementById('ag-client-name').value;
+  const licence=document.getElementById('ag-licence').value;
+  const clientPhone=document.getElementById('ag-client-phone').value;
+  const clientAddr=document.getElementById('ag-client-addr').value;
+  const ecName=document.getElementById('ag-ec-name').value;
+  const ecPhone=document.getElementById('ag-ec-phone').value;
+  const logoHTML=prefs.logoData?`<img class="agree-logo" src="${prefs.logoData}" alt="Logo"/>`:'';
+  return`<div class="agree-prev">
+    <div class="agree-hdr">
+      <div><div class="agree-biz-name">${bizName}</div><div class="agree-biz-sub">${bizAddr}${bizPhone?' · '+bizPhone:''}</div></div>
+      ${logoHTML}
+    </div>
+    <div class="agree-body">
+      <div class="agree-title">${title}</div>
+      ${dep&&dep.signed?`<div style="text-align:right;margin-bottom:12px"><span class="signed-badge">✅ SIGNED — ${dep.signedDate||''}</span></div>`:''}
+      <div class="agree-section">
+        <div class="agree-section-title">Terms &amp; Conditions</div>
+        ${agreementTerms.map((t,i)=>`<div class="agree-clause">${t}</div>`).join('')}
+      </div>
+      <div class="agree-section">
+        <div class="agree-section-title">Booking Details</div>
+        <div class="agree-booking-grid">
+          ${service?`<div class="agree-booking-item"><div class="agree-booking-lbl">Service / Vehicle</div><div class="agree-booking-val">${service}</div></div>`:''}
+          ${rego?`<div class="agree-booking-item"><div class="agree-booking-lbl">Ref / Rego No.</div><div class="agree-booking-val">${rego}</div></div>`:''}
+          ${start?`<div class="agree-booking-item"><div class="agree-booking-lbl">Start Date</div><div class="agree-booking-val">${start}</div></div>`:''}
+          ${end?`<div class="agree-booking-item"><div class="agree-booking-lbl">End Date</div><div class="agree-booking-val">${end}</div></div>`:''}
+          ${pickup?`<div class="agree-booking-item"><div class="agree-booking-lbl">Pick-up</div><div class="agree-booking-val">${pickup}</div></div>`:''}
+          ${dropoff?`<div class="agree-booking-item"><div class="agree-booking-lbl">Return / Drop-off</div><div class="agree-booking-val">${dropoff}</div></div>`:''}
+          ${depPaid?`<div class="agree-booking-item"><div class="agree-booking-lbl">Deposit Paid</div><div class="agree-booking-val" style="color:#009970">${depPaid}</div></div>`:''}
+          ${security?`<div class="agree-booking-item"><div class="agree-booking-lbl">Security Deposit</div><div class="agree-booking-val">${security}</div></div>`:''}
+          ${balance?`<div class="agree-booking-item"><div class="agree-booking-lbl">Balance Due</div><div class="agree-booking-val" style="color:#FF5C7A">${balance}</div></div>`:''}
+        </div>
+      </div>
+      <div class="agree-section">
+        <div class="agree-section-title">Client Details</div>
+        <div class="agree-booking-grid">
+          ${clientName?`<div class="agree-booking-item"><div class="agree-booking-lbl">Full Name</div><div class="agree-booking-val">${clientName}</div></div>`:''}
+          ${licence?`<div class="agree-booking-item"><div class="agree-booking-lbl">Licence / ID No.</div><div class="agree-booking-val">${licence}</div></div>`:''}
+          ${clientPhone?`<div class="agree-booking-item"><div class="agree-booking-lbl">Phone</div><div class="agree-booking-val">${clientPhone}</div></div>`:''}
+          ${clientAddr?`<div class="agree-booking-item agree-booking-item--full"><div class="agree-booking-lbl">Address</div><div class="agree-booking-val">${clientAddr}</div></div>`:''}
+        </div>
+        ${(ecName||ecPhone)?`<div style="margin-top:8px"><div class="agree-booking-lbl">Emergency Contact</div><div class="agree-booking-val">${ecName}${ecPhone?' · '+ecPhone:''}</div></div>`:''}
+      </div>
+      <div class="agree-sig-box">
+        <div>
+          <div class="agree-sig-line"></div>
+          <div class="agree-sig-lbl">Client Signature &amp; Date</div>
+        </div>
+        <div>
+          <div class="agree-sig-line"></div>
+          <div class="agree-sig-lbl">Authorised by ${bizName}</div>
+        </div>
+      </div>
+    </div>
+    <div class="agree-footer">This agreement is generated by Hisab-Kitab · ${new Date().toLocaleDateString()} · ${bizName}</div>
+  </div>`;
+}
+
+function previewAgreement(){
+  const html=buildAgreementHTML();
+  document.getElementById('agree-preview-content').innerHTML=html;
+  closeMod('agreement-modal');
+  document.getElementById('agree-preview-modal').style.display='flex';
+}
+
+function generateAgreementPDF(){
+  const html=buildAgreementHTML();
+  const pa=document.getElementById('print-area');
+  pa.innerHTML=html;pa.style.display='block';
+  // Save agreement data to deposit
+  if(currentDepositId){
+    const dep=deposits.find(d=>d.id===currentDepositId);
+    if(dep){dep.agreementData={terms:agreementTerms,fields:{service:document.getElementById('ag-service').value,rego:document.getElementById('ag-rego').value,start:document.getElementById('ag-start').value,end:document.getElementById('ag-end').value,pickup:document.getElementById('ag-pickup').value,dropoff:document.getElementById('ag-dropoff').value,clientName:document.getElementById('ag-client-name').value,licence:document.getElementById('ag-licence').value,clientPhone:document.getElementById('ag-client-phone').value,clientAddr:document.getElementById('ag-client-addr').value,ecName:document.getElementById('ag-ec-name').value,ecPhone:document.getElementById('ag-ec-phone').value}};saveLocal();}
+  }
+  setTimeout(()=>{window.print();setTimeout(()=>{pa.style.display='none';},500);},150);
+}
+
+function shareAgreementWA(){
+  const dep=currentDepositId?deposits.find(d=>d.id===currentDepositId):null;
+  const bizName=document.getElementById('ag-biz')?.value||prefs.bizName;
+  const title=document.getElementById('ag-title')?.value||'Service Agreement';
+  const clientName=document.getElementById('ag-client-name')?.value||(dep?.customer||'');
+  const service=document.getElementById('ag-service')?.value||(dep?.service||'');
+  const balance=document.getElementById('ag-balance')?.value||(dep?fmt(dep.balance):'');
+  const lines=[
+    `📋 *${title}*`,``,`*${bizName}*`,``,
+    `Dear ${clientName},`,``,
+    `Please find your booking/service agreement details below.`,``,
+    `*Service:* ${service}`,
+    document.getElementById('ag-start')?.value?`*Date:* ${document.getElementById('ag-start').value}`:null,
+    document.getElementById('ag-pickup')?.value?`*Pick-up:* ${document.getElementById('ag-pickup').value}`:null,
+    balance?`*Balance Due:* ${balance}`:null,``,
+    `*Terms apply.* For the full PDF agreement, please check your email or contact us.`,``,
+    `To confirm, please reply with:`,`✅ "I agree to the terms and conditions"`,``,
+    `Thank you for choosing ${bizName}!`,``,`_Generated by Hisab-Kitab_`
+  ].filter(Boolean);
+  const phone=dep?.phone||document.getElementById('ag-client-phone')?.value||'';
+  const url='https://wa.me/'+(phone.replace(/[^0-9]/g,'')+'?text='+encodeURIComponent(lines.join('\n')));
+  window.open(url,'_blank');
+}
+
 // ═══ PWA ═══
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;const r=document.getElementById('install-row');if(r)r.style.display='flex';});
 function installPWA(){if(!deferredInstall)return;deferredInstall.prompt();deferredInstall.userChoice.then(()=>{deferredInstall=null;});}
@@ -1625,6 +2226,9 @@ function installPWA(){if(!deferredInstall)return;deferredInstall.prompt();deferr
 applyTheme();
 setLang(lang);
 document.getElementById('edate').valueAsDate=new Date();
+// Set deposit date defaults
+['nd-due','nd-start'].forEach(id=>{const el=document.getElementById(id);if(el)el.valueAsDate=new Date();});
+['ud-date'].forEach(id=>{const el=document.getElementById(id);if(el)el.valueAsDate=new Date();});
 document.getElementById('iv-date').valueAsDate=new Date();
 document.getElementById('ai-input')?.addEventListener('keydown',e=>{if(e.key==='Enter')askAI();});
 // Close stock dropdown on blur with delay
@@ -1632,5 +2236,99 @@ document.getElementById('desc')?.addEventListener('blur',()=>{setTimeout(()=>{co
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 checkAuth();
 </script>
+
+<!-- NEW DEPOSIT MODAL -->
+<div class="mo" id="new-dep-modal" style="display:none"><div class="md"><div class="mdg"></div>
+  <div class="mdt" id="new-dep-title">New Deposit <button class="mdc" onclick="closeMod('new-dep-modal')">✕</button></div>
+  <div class="fi"><label>Customer Name *</label><input type="text" id="nd-customer" placeholder="Full name"/></div>
+  <div class="fi"><label>Customer Phone</label><input type="tel" id="nd-phone" placeholder="Phone number"/></div>
+  <div class="fi"><label>Customer Email</label><input type="email" id="nd-email" placeholder="email@example.com"/></div>
+  <div class="fi"><label>Service / Description *</label><input type="text" id="nd-service" placeholder="e.g. Pokhara Tour Package, Shuttle Hire..."/></div>
+  <div class="fg">
+    <div><label class="fl">Total Amount</label><input type="number" id="nd-total" placeholder="0" min="0" oninput="calcDepBalance()"/></div>
+    <div><label class="fl">Deposit Amount *</label><input type="number" id="nd-deposit" placeholder="0" min="0" oninput="calcDepBalance()"/></div>
+  </div>
+  <div class="fg">
+    <div><label class="fl">Balance Due (auto)</label><input type="number" id="nd-balance" readonly style="opacity:.7" placeholder="Auto-calculated"/></div>
+    <div><label class="fl">Payment Due Date</label><input type="date" id="nd-due"/></div>
+  </div>
+  <div class="fg">
+    <div><label class="fl">Service Date / Start</label><input type="date" id="nd-start"/></div>
+    <div><label class="fl">End Date (if any)</label><input type="date" id="nd-end"/></div>
+  </div>
+  <div class="fi"><label>Notes</label><input type="text" id="nd-notes" placeholder="Any extra details..."/></div>
+  <!-- Travel-specific fields (shown for travel mode) -->
+  <div id="nd-travel-fields" style="display:none">
+    <div style="font-size:11px;font-weight:800;color:var(--b);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;padding:8px 0 0">✈️ Vehicle / Booking Details</div>
+    <div class="fg"><div><label class="fl">Vehicle / Service Details</label><input type="text" id="nd-vehicle" placeholder="e.g. 2017 Toyota Hiace 12 Seater"/></div><div><label class="fl">Registration / Ref No.</label><input type="text" id="nd-rego" placeholder="e.g. DM95SW"/></div></div>
+    <div class="fg"><div><label class="fl">Pick-up Location</label><input type="text" id="nd-pickup" placeholder="Address or location"/></div><div><label class="fl">Pick-up Time</label><input type="time" id="nd-pickup-time"/></div></div>
+    <div class="fg"><div><label class="fl">Drop-off Location / Time</label><input type="text" id="nd-dropoff" placeholder="e.g. Before 5PM"/></div><div><label class="fl">Security Deposit</label><input type="number" id="nd-security" placeholder="0" min="0"/></div></div>
+    <div class="fg full"><div><label class="fl">Destination / Purpose</label><input type="text" id="nd-destination" placeholder="e.g. Private Shuttle, Pokhara Tour"/></div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+    <button class="btn sec" onclick="saveDeposit(false)">Save Only</button>
+    <button class="btn" onclick="saveDeposit(true)">Save &amp; Send Agreement</button>
+  </div>
+</div></div>
+
+<!-- UDHARO MODAL -->
+<div class="mo" id="new-udharo-modal" style="display:none"><div class="md"><div class="mdg"></div>
+  <div class="mdt">New Udharo / Credit <button class="mdc" onclick="closeMod('new-udharo-modal')">✕</button></div>
+  <div class="fi"><label>Customer Name *</label><input type="text" id="ud-customer" placeholder="Full name"/></div>
+  <div class="fi"><label>Phone</label><input type="tel" id="ud-phone" placeholder="Phone number"/></div>
+  <div class="fg"><div><label class="fl">Item / Service *</label><input type="text" id="ud-item" placeholder="What they took on credit"/></div><div><label class="fl">Amount Owed *</label><input type="number" id="ud-amount" placeholder="0" min="0"/></div></div>
+  <div class="fg"><div><label class="fl">Date Given</label><input type="date" id="ud-date"/></div><div><label class="fl">Due Date</label><input type="date" id="ud-duedate"/></div></div>
+  <div class="fi"><label>Notes</label><input type="text" id="ud-notes" placeholder="Any extra info..."/></div>
+  <button class="btn" onclick="saveUdharo()">Add Udharo</button>
+</div></div>
+
+<!-- DEPOSIT DETAIL MODAL -->
+<div class="mo" id="dep-detail-modal" style="display:none"><div class="md"><div class="mdg"></div>
+  <div class="mdt" id="ddm-title">Deposit <button class="mdc" onclick="closeMod('dep-detail-modal')">✕</button></div>
+  <div id="ddm-content"></div>
+  <div id="ddm-actions" style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px"></div>
+</div></div>
+
+<!-- AGREEMENT BUILDER MODAL -->
+<div class="mo" id="agreement-modal" style="display:none"><div class="md"><div class="mdg"></div>
+  <div class="mdt">Customise Agreement <button class="mdc" onclick="closeMod('agreement-modal')">✕</button></div>
+  <p style="font-size:13px;color:var(--t2);margin-bottom:14px;line-height:1.6">Review and update the details before sending. The highlighted fields are pre-filled from the deposit — change anything before generating the PDF.</p>
+  <div class="fi"><label>Business / Company Name *</label><input type="text" id="ag-biz" placeholder="Your business name"/></div>
+  <div class="fg"><div><label class="fl">Business Address</label><input type="text" id="ag-addr" placeholder="Full address"/></div><div><label class="fl">Business Phone</label><input type="tel" id="ag-phone" placeholder="Phone"/></div></div>
+  <div class="fi"><label>Agreement Title</label><input type="text" id="ag-title" placeholder="e.g. Vehicle Hire Agreement, Tour Package Agreement"/></div>
+  <!-- Custom Terms (editable) -->
+  <div style="font-size:11px;font-weight:800;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 8px">Terms &amp; Conditions</div>
+  <div id="ag-terms-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
+  <button class="btn sec" style="margin-bottom:14px" onclick="addAgreementTerm()">+ Add Custom Term</button>
+  <!-- Booking details (auto-filled from deposit) -->
+  <div style="font-size:11px;font-weight:800;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Booking / Payment Details</div>
+  <div class="fg"><div><label class="fl">Service / Vehicle</label><input type="text" id="ag-service"/></div><div><label class="fl">Ref / Rego No.</label><input type="text" id="ag-rego"/></div></div>
+  <div class="fg"><div><label class="fl">Start Date</label><input type="date" id="ag-start"/></div><div><label class="fl">End Date</label><input type="date" id="ag-end"/></div></div>
+  <div class="fg"><div><label class="fl">Pick-up Location &amp; Time</label><input type="text" id="ag-pickup"/></div><div><label class="fl">Drop-off / Return</label><input type="text" id="ag-dropoff"/></div></div>
+  <div class="fg"><div><label class="fl">Deposit Paid</label><input type="text" id="ag-dep-paid" readonly style="opacity:.7"/></div><div><label class="fl">Security Deposit (if any)</label><input type="text" id="ag-security"/></div></div>
+  <div class="fg full"><div><label class="fl">Balance Due &amp; Due Date</label><input type="text" id="ag-balance"/></div></div>
+  <!-- Client details -->
+  <div style="font-size:11px;font-weight:800;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 10px">Client / Driver Details</div>
+  <div class="fg"><div><label class="fl">Client Full Name</label><input type="text" id="ag-client-name"/></div><div><label class="fl">Licence / ID Number</label><input type="text" id="ag-licence"/></div></div>
+  <div class="fg"><div><label class="fl">Phone</label><input type="text" id="ag-client-phone"/></div><div><label class="fl">Address</label><input type="text" id="ag-client-addr" placeholder="Client address"/></div></div>
+  <div class="fg"><div><label class="fl">Emergency Contact Name</label><input type="text" id="ag-ec-name" placeholder="Emergency contact"/></div><div><label class="fl">Emergency Contact Phone</label><input type="text" id="ag-ec-phone"/></div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+    <button class="btn sec" onclick="previewAgreement()">👁 Preview</button>
+    <button class="btn" onclick="generateAgreementPDF()">📄 Generate &amp; Download PDF</button>
+  </div>
+  <button class="btn sec" style="margin-top:8px" onclick="shareAgreementWA()">📱 Send via WhatsApp</button>
+</div></div>
+
+<!-- AGREEMENT PREVIEW MODAL -->
+<div class="mo" id="agree-preview-modal" style="display:none"><div class="md" style="padding:14px 14px 28px"><div class="mdg"></div>
+  <div class="mdt">Agreement Preview <button class="mdc" onclick="closeMod('agree-preview-modal')">✕</button></div>
+  <div id="agree-preview-content"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+    <button class="btn sec" onclick="shareAgreementWA()">📱 WhatsApp</button>
+    <button class="btn" onclick="generateAgreementPDF()">📄 PDF &amp; Email</button>
+  </div>
+  <button class="btn sec" style="margin-top:8px;font-size:12px" onclick="markSigned()">✅ Mark as Signed</button>
+</div></div>
+
 </body>
 </html>
