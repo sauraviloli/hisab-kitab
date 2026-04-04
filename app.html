@@ -1732,15 +1732,50 @@ function updateWsUI(){}
 
 // ═══ JWT REFRESH ═══
 async function checkAuth(){
-  const tok=localStorage.getItem('hk_token');const refresh=localStorage.getItem('hk_refresh');
-  if(tok){
-    const{data,error}=await sb.auth.getUser(tok);
-    if(data?.user&&!error){user=data.user;isDemo=false;showApp();return;}
-    if(refresh){
-      try{const res=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'refresh',refresh_token:refresh})});const d=await res.json();if(d.access_token){localStorage.setItem('hk_token',d.access_token);if(d.refresh_token)localStorage.setItem('hk_refresh',d.refresh_token);user=d.user;isDemo=false;showApp();return;}}catch(e){}
+  // Safety net — never stay stuck on loading screen
+  const safetyTimer=setTimeout(()=>{
+    document.getElementById('ls').style.display='none';
+    document.getElementById('as').style.display='flex';
+  },5000);
+
+  try{
+    const tok=localStorage.getItem('hk_token');
+    const refresh=localStorage.getItem('hk_refresh');
+
+    if(tok){
+      try{
+        const{data,error}=await sb.auth.getUser(tok);
+        if(data?.user&&!error){
+          clearTimeout(safetyTimer);
+          user=data.user;isDemo=false;showApp();return;
+        }
+      }catch(e){}
+
+      // Try token refresh
+      if(refresh){
+        try{
+          const res=await fetch('/api/auth',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({action:'refresh',refresh_token:refresh})
+          });
+          const d=await res.json();
+          if(d.access_token){
+            localStorage.setItem('hk_token',d.access_token);
+            if(d.refresh_token)localStorage.setItem('hk_refresh',d.refresh_token);
+            clearTimeout(safetyTimer);
+            user=d.user;isDemo=false;showApp();return;
+          }
+        }catch(e){}
+      }
+
+      // Token invalid — clear and show auth
+      localStorage.removeItem('hk_token');
+      localStorage.removeItem('hk_refresh');
     }
-    localStorage.removeItem('hk_token');localStorage.removeItem('hk_refresh');
-  }
+  }catch(e){}
+
+  clearTimeout(safetyTimer);
   document.getElementById('ls').style.display='none';
   document.getElementById('as').style.display='flex';
 }
