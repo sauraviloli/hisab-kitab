@@ -11,7 +11,7 @@
 <link rel="icon" type="image/svg+xml" href="logo.svg"/>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="document.getElementById('ls').style.display='none';document.getElementById('as').style.display='flex'"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -903,7 +903,15 @@ textarea{resize:vertical;min-height:56px}
 const SB_URL='https://yjghsymqopqfezwdjhki.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlqZ2hzeW1xb3BxZmV6d2RqaGtpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3ODMwMzksImV4cCI6MjA5MDM1OTAzOX0.Etp-cAJeDHF4zILcteEF8agdJaKuGPWa2cjCtZ9HiDc';
 const getToken=()=>localStorage.getItem('hk_token')||SB_ANON;
-const sb=supabase.createClient(SB_URL,SB_ANON,{global:{headers:{get Authorization(){return 'Bearer '+getToken()}}}});
+let sb;
+try{
+  sb=supabase.createClient(SB_URL,SB_ANON,{global:{headers:{get Authorization(){return 'Bearer '+getToken()}}}});
+}catch(e){
+  // Supabase failed to load — show auth screen
+  sb={from:()=>({select:()=>({eq:()=>({order:()=>({data:null,error:e})}),single:()=>({data:null,error:e}),data:null,error:e}),insert:()=>({select:()=>({single:()=>({data:null,error:e})})}),update:()=>({eq:()=>({data:null,error:e})}),delete:()=>({eq:()=>({data:null,error:e})}),upsert:()=>({data:null,error:e})}),auth:{getUser:()=>Promise.resolve({data:{},error:e}),signOut:()=>Promise.resolve({})}};
+  document.getElementById('ls').style.display='none';
+  document.getElementById('as').style.display='flex';
+}
 
 // ═══════════════════════════════════════════
 // REGION CONFIG
@@ -2269,7 +2277,25 @@ document.getElementById('ai-input')?.addEventListener('keydown',e=>{if(e.key==='
 // Close stock dropdown on blur with delay
 document.getElementById('desc')?.addEventListener('blur',()=>{setTimeout(()=>{const dd=document.getElementById('stock-dd');if(dd)dd.classList.remove('open');},250);});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
-checkAuth();
+
+// Hard timeout - show auth screen after 3s no matter what
+const HARD_TIMEOUT=setTimeout(()=>{
+  document.getElementById('ls').style.display='none';
+  document.getElementById('as').style.display='flex';
+},3000);
+
+// If no token at all, skip straight to auth immediately
+if(!localStorage.getItem('hk_token')){
+  clearTimeout(HARD_TIMEOUT);
+  document.getElementById('ls').style.display='none';
+  document.getElementById('as').style.display='flex';
+}else{
+  checkAuth().catch(()=>{
+    clearTimeout(HARD_TIMEOUT);
+    document.getElementById('ls').style.display='none';
+    document.getElementById('as').style.display='flex';
+  });
+}
 </script>
 
 <!-- NEW DEPOSIT MODAL -->
