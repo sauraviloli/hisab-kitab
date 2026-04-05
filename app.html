@@ -401,6 +401,15 @@ textarea{resize:vertical;min-height:56px}
 </style>
 </head>
 <body>
+<script>
+// This runs immediately before any other JS — guarantees loading screen escape
+window._authTimer = setTimeout(function(){
+  var ls = document.getElementById('ls');
+  var as = document.getElementById('as');
+  if(ls) ls.style.display = 'none';
+  if(as) as.style.display = 'flex';
+}, 2000);
+</script>
 <div id="toast"></div>
 <div id="print-area"></div>
 
@@ -2278,23 +2287,15 @@ document.getElementById('ai-input')?.addEventListener('keydown',e=>{if(e.key==='
 document.getElementById('desc')?.addEventListener('blur',()=>{setTimeout(()=>{const dd=document.getElementById('stock-dd');if(dd)dd.classList.remove('open');},250);});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 
-// Hard timeout - show auth screen after 3s no matter what
-const HARD_TIMEOUT=setTimeout(()=>{
-  document.getElementById('ls').style.display='none';
-  document.getElementById('as').style.display='flex';
-},3000);
+// Clear the body-level safety timer since JS loaded fine
+if(window._authTimer) clearTimeout(window._authTimer);
 
-// If no token at all, skip straight to auth immediately
+// If no token, show auth immediately
 if(!localStorage.getItem('hk_token')){
-  clearTimeout(HARD_TIMEOUT);
   document.getElementById('ls').style.display='none';
   document.getElementById('as').style.display='flex';
 }else{
-  checkAuth().catch(()=>{
-    clearTimeout(HARD_TIMEOUT);
-    document.getElementById('ls').style.display='none';
-    document.getElementById('as').style.display='flex';
-  });
+  checkAuth();
 }
 </script>
 
