@@ -12,6 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onerror="document.getElementById('ls').style.display='none';document.getElementById('as').style.display='flex'"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -2234,16 +2235,300 @@ function previewAgreement(){
   document.getElementById('agree-preview-modal').style.display='flex';
 }
 
-function generateAgreementPDF(){
-  const html=buildAgreementHTML();
-  const pa=document.getElementById('print-area');
-  pa.innerHTML=html;pa.style.display='block';
-  // Save agreement data to deposit
-  if(currentDepositId){
-    const dep=deposits.find(d=>d.id===currentDepositId);
-    if(dep){dep.agreementData={terms:agreementTerms,fields:{service:document.getElementById('ag-service').value,rego:document.getElementById('ag-rego').value,start:document.getElementById('ag-start').value,end:document.getElementById('ag-end').value,pickup:document.getElementById('ag-pickup').value,dropoff:document.getElementById('ag-dropoff').value,clientName:document.getElementById('ag-client-name').value,licence:document.getElementById('ag-licence').value,clientPhone:document.getElementById('ag-client-phone').value,clientAddr:document.getElementById('ag-client-addr').value,ecName:document.getElementById('ag-ec-name').value,ecPhone:document.getElementById('ag-ec-phone').value}};saveLocal();}
+function saveAgreementToDeposit(){
+  if(!currentDepositId)return;
+  const dep=deposits.find(d=>d.id===currentDepositId);
+  if(dep){
+    dep.agreementData={
+      terms:agreementTerms,
+      fields:{
+        service:document.getElementById('ag-service').value,
+        rego:document.getElementById('ag-rego').value,
+        start:document.getElementById('ag-start').value,
+        end:document.getElementById('ag-end').value,
+        pickup:document.getElementById('ag-pickup').value,
+        dropoff:document.getElementById('ag-dropoff').value,
+        clientName:document.getElementById('ag-client-name').value,
+        licence:document.getElementById('ag-licence').value,
+        clientPhone:document.getElementById('ag-client-phone').value,
+        clientAddr:document.getElementById('ag-client-addr').value,
+        ecName:document.getElementById('ag-ec-name').value,
+        ecPhone:document.getElementById('ag-ec-phone').value
+      }
+    };
+    saveLocal();
   }
-  setTimeout(()=>{window.print();setTimeout(()=>{pa.style.display='none';},500);},150);
+}
+
+function buildAgreementPDF(){
+  // Get all field values
+  const bizName=document.getElementById('ag-biz').value||prefs.bizName||'';
+  const bizAddr=document.getElementById('ag-addr').value||prefs.bizAddr||'';
+  const bizPhone=document.getElementById('ag-phone').value||prefs.bizPhone||'';
+  const title=document.getElementById('ag-title').value||'Service Agreement';
+  const service=document.getElementById('ag-service').value||'';
+  const rego=document.getElementById('ag-rego').value||'';
+  const start=document.getElementById('ag-start').value||'';
+  const end=document.getElementById('ag-end').value||'';
+  const pickup=document.getElementById('ag-pickup').value||'';
+  const dropoff=document.getElementById('ag-dropoff').value||'';
+  const depPaid=document.getElementById('ag-dep-paid').value||'';
+  const security=document.getElementById('ag-security').value||'';
+  const balance=document.getElementById('ag-balance').value||'';
+  const clientName=document.getElementById('ag-client-name').value||'';
+  const licence=document.getElementById('ag-licence').value||'';
+  const clientPhone=document.getElementById('ag-client-phone').value||'';
+  const clientAddr=document.getElementById('ag-client-addr').value||'';
+  const ecName=document.getElementById('ag-ec-name').value||'';
+  const ecPhone=document.getElementById('ag-ec-phone').value||'';
+
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210,M=18,TW=W-M*2;
+  let y=M;
+
+  // ── HEADER BAND ──
+  doc.setFillColor(15,17,48);
+  doc.rect(0,0,W,36,'F');
+
+  // Logo (if available)
+  if(prefs.logoData){
+    try{doc.addImage(prefs.logoData,'PNG',M,6,22,22);}catch(e){}
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(16);doc.setFont('helvetica','bold');
+    doc.text(bizName,M+26,16);
+    doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(180,180,210);
+    doc.text((bizAddr+(bizPhone?' · '+bizPhone:''))||' ',M+26,23);
+  }else{
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(18);doc.setFont('helvetica','bold');
+    doc.text(bizName,M,18);
+    doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(180,180,210);
+    doc.text((bizAddr+(bizPhone?' · '+bizPhone:''))||' ',M,25);
+  }
+
+  // Date top right
+  doc.setFontSize(8);doc.setTextColor(150,150,190);
+  doc.text('Date: '+new Date().toLocaleDateString(),W-M,14,{align:'right'});
+
+  y=44;
+
+  // ── TITLE ──
+  doc.setTextColor(15,17,48);
+  doc.setFontSize(17);doc.setFont('helvetica','bold');
+  doc.text(title,W/2,y,{align:'center'});
+  y+=3;
+  doc.setDrawColor(15,17,48);doc.setLineWidth(0.8);
+  doc.line(M,y,W-M,y);
+  y+=8;
+
+  // ── TERMS & CONDITIONS ──
+  doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(100,100,130);
+  doc.text('TERMS & CONDITIONS',M,y);
+  y+=5;
+  doc.setFont('helvetica','normal');doc.setTextColor(50,50,70);doc.setFontSize(9);
+  agreementTerms.forEach((term,i)=>{
+    const prefix=(i+1)+'. ';
+    const lines=doc.splitTextToSize(prefix+term,TW);
+    if(y+lines.length*5>270){doc.addPage();y=M;}
+    doc.text(lines,M,y);
+    y+=lines.length*5+1.5;
+  });
+  y+=4;
+
+  // ── BOOKING DETAILS ──
+  if(y>240){doc.addPage();y=M;}
+  doc.setFillColor(248,249,252);
+  const bookingFields=[
+    service?['Service / Vehicle',service]:null,
+    rego?['Ref / Rego No.',rego]:null,
+    start?['Start Date',start]:null,
+    end?['End Date',end]:null,
+    pickup?['Pick-up',pickup]:null,
+    dropoff?['Return / Drop-off',dropoff]:null,
+    depPaid?['Deposit Paid',depPaid]:null,
+    security?['Security Deposit',security]:null,
+    balance?['Balance Due',balance]:null,
+  ].filter(Boolean);
+
+  if(bookingFields.length){
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(100,100,130);
+    doc.text('BOOKING DETAILS',M,y);y+=5;
+    doc.setFillColor(248,249,252);
+    doc.rect(M,y-2,TW,bookingFields.length*7+4,'F');
+    doc.setDrawColor(220,220,235);doc.setLineWidth(0.3);
+    doc.rect(M,y-2,TW,bookingFields.length*7+4,'S');
+    bookingFields.forEach(([lbl,val])=>{
+      doc.setFont('helvetica','bold');doc.setTextColor(120,120,150);doc.setFontSize(8);
+      doc.text(lbl+':',M+3,y+3);
+      doc.setFont('helvetica','normal');doc.setTextColor(15,17,48);doc.setFontSize(9);
+      doc.text(String(val),M+55,y+3);
+      y+=7;
+    });
+    y+=6;
+  }
+
+  // ── CLIENT DETAILS ──
+  if(y>240){doc.addPage();y=M;}
+  const clientFields=[
+    clientName?['Full Name',clientName]:null,
+    licence?['Licence / ID No.',licence]:null,
+    clientPhone?['Phone',clientPhone]:null,
+    clientAddr?['Address',clientAddr]:null,
+    (ecName||ecPhone)?['Emergency Contact',(ecName||'')+(ecPhone?' · '+ecPhone:'')]:null,
+  ].filter(Boolean);
+
+  if(clientFields.length){
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(100,100,130);
+    doc.text('CLIENT DETAILS',M,y);y+=5;
+    doc.setFillColor(248,249,252);
+    doc.rect(M,y-2,TW,clientFields.length*7+4,'F');
+    doc.setDrawColor(220,220,235);doc.setLineWidth(0.3);
+    doc.rect(M,y-2,TW,clientFields.length*7+4,'S');
+    clientFields.forEach(([lbl,val])=>{
+      doc.setFont('helvetica','bold');doc.setTextColor(120,120,150);doc.setFontSize(8);
+      doc.text(lbl+':',M+3,y+3);
+      doc.setFont('helvetica','normal');doc.setTextColor(15,17,48);doc.setFontSize(9);
+      doc.text(String(val),M+55,y+3);
+      y+=7;
+    });
+    y+=6;
+  }
+
+  // ── SIGNATURE BOXES ──
+  if(y>245){doc.addPage();y=M;}
+  y+=4;
+  doc.setDrawColor(15,17,48);doc.setLineWidth(0.8);
+  doc.line(M,y+2,W-M,y+2);y+=4;
+  doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(100,100,130);
+  doc.text('SIGNATURES',M,y);y+=8;
+
+  // Two signature boxes
+  const boxW=(TW-10)/2;
+  // Left box - client
+  doc.setDrawColor(200,200,220);doc.setLineWidth(0.4);
+  doc.rect(M,y,boxW,28,'S');
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(120,120,150);
+  doc.text('Client Signature:',M+3,y+8);
+  doc.setDrawColor(180,180,200);doc.setLineWidth(0.3);
+  doc.line(M+3,y+20,M+boxW-3,y+20);
+  doc.setFontSize(7);doc.text('Name: '+(clientName||'_________________'),M+3,y+25);
+  // Right box - business
+  const rx=M+boxW+10;
+  doc.setDrawColor(200,200,220);doc.setLineWidth(0.4);
+  doc.rect(rx,y,boxW,28,'S');
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(120,120,150);
+  doc.text('Authorised by '+bizName+':',rx+3,y+8);
+  doc.setDrawColor(180,180,200);doc.setLineWidth(0.3);
+  doc.line(rx+3,y+20,rx+boxW-3,y+20);
+  doc.setFontSize(7);doc.text('Date: _______________',rx+3,y+25);
+  y+=36;
+
+  // ── FOOTER ──
+  const pageCount=doc.internal.getNumberOfPages();
+  for(let i=1;i<=pageCount;i++){
+    doc.setPage(i);
+    doc.setFillColor(248,249,252);
+    doc.rect(0,287,W,10,'F');
+    doc.setFontSize(7);doc.setTextColor(150,150,170);
+    doc.text('Generated by Hisab-Kitab · '+bizName+' · '+new Date().toLocaleDateString(),W/2,293,{align:'center'});
+    doc.text('Page '+i+' of '+pageCount,W-M,293,{align:'right'});
+  }
+
+  return doc;
+}
+
+function generateAgreementPDF(){
+  if(!window.jspdf){toast('PDF library loading... please try again in a moment.');return;}
+  saveAgreementToDeposit();
+  try{
+    const doc=buildAgreementPDF();
+    const clientName=document.getElementById('ag-client-name').value||'Agreement';
+    const bizName=document.getElementById('ag-biz').value||prefs.bizName||'Business';
+    const filename=bizName.replace(/[^a-z0-9]/gi,'_')+'_Agreement_'+clientName.replace(/[^a-z0-9]/gi,'_')+'.pdf';
+    doc.save(filename);
+    toast('PDF downloaded ✓');
+    // Ask if they want to email it too
+    setTimeout(()=>{
+      if(confirm('PDF downloaded! Would you like to also send via email?')){
+        emailAgreementPDF(doc,filename);
+      }
+    },500);
+  }catch(e){
+    console.error('PDF error:',e);
+    toast('Error generating PDF: '+e.message);
+  }
+}
+
+function emailAgreementPDF(docOrNull, filename){
+  // Get email address
+  const dep=currentDepositId?deposits.find(d=>d.id===currentDepositId):null;
+  const clientEmail=dep?.email||'';
+  const clientName=document.getElementById('ag-client-name').value||(dep?.customer||'Customer');
+  const bizName=document.getElementById('ag-biz').value||prefs.bizName;
+  const title=document.getElementById('ag-title').value||'Service Agreement';
+  const service=document.getElementById('ag-service').value||(dep?.service||'');
+  const balance=document.getElementById('ag-balance').value||(dep?fmt(dep.balance):'');
+
+  // If we have the PDF doc, embed it as data URI and trigger mailto with instructions
+  // (browsers can't attach files to mailto, so we download + give instructions)
+  const subject=encodeURIComponent(`${title} — Signature Required | ${bizName}`);
+  const body=encodeURIComponent(
+`Dear ${clientName},
+
+Please find the ${title} attached to this email.
+
+IMPORTANT: Please review the agreement carefully and reply to this email with:
+✅ "I, ${clientName}, agree to the terms and conditions stated in this agreement."
+
+Or print the agreement, sign it, and send a photo/scan back to us.
+
+Service/Booking Details:
+${service?'• Service: '+service:''}
+${balance?'• Balance Due: '+balance:''}
+
+If you have any questions, please don't hesitate to contact us.
+
+Thank you,
+${bizName}
+${document.getElementById('ag-phone').value||prefs.bizPhone||''}
+
+---
+This agreement was generated by Hisab-Kitab.`);
+
+  // Download PDF first then open email
+  if(!docOrNull){
+    try{
+      const doc=buildAgreementPDF();
+      const fn=filename||(bizName.replace(/[^a-z0-9]/gi,'_')+'_Agreement.pdf');
+      doc.save(fn);
+    }catch(e){}
+  }
+
+  // Open email client (browsers can't attach files via mailto, so we instruct to attach)
+  const mailtoUrl=`mailto:${clientEmail}?subject=${subject}&body=${body}`;
+  window.location.href=mailtoUrl;
+  
+  // Show toast instructing to attach
+  setTimeout(()=>{
+    toast('PDF saved — please attach it to the email that opened');
+  },800);
+}
+
+function generateAndEmailAgreement(){
+  if(!window.jspdf){toast('PDF library loading... please try again');return;}
+  saveAgreementToDeposit();
+  try{
+    const doc=buildAgreementPDF();
+    const dep=currentDepositId?deposits.find(d=>d.id===currentDepositId):null;
+    const clientName=document.getElementById('ag-client-name').value||(dep?.customer||'Agreement');
+    const bizName=document.getElementById('ag-biz').value||prefs.bizName||'Business';
+    const filename=bizName.replace(/[^a-z0-9]/gi,'_')+'_Agreement_'+clientName.replace(/[^a-z0-9]/gi,'_')+'.pdf';
+    doc.save(filename);
+    setTimeout(()=>emailAgreementPDF(null,filename),400);
+  }catch(e){
+    toast('Error: '+e.message);
+  }
 }
 
 function shareAgreementWA(){
@@ -2376,7 +2661,7 @@ if(!localStorage.getItem('hk_token')){
   <div class="fg"><div><label class="fl">Emergency Contact Name</label><input type="text" id="ag-ec-name" placeholder="Emergency contact"/></div><div><label class="fl">Emergency Contact Phone</label><input type="text" id="ag-ec-phone"/></div></div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
     <button class="btn sec" onclick="previewAgreement()">👁 Preview</button>
-    <button class="btn" onclick="generateAgreementPDF()">📄 Generate &amp; Download PDF</button>
+    <button class="btn" onclick="generateAgreementPDF()">📄 Download PDF</button>
   </div>
   <button class="btn sec" style="margin-top:8px" onclick="shareAgreementWA()">📱 Send via WhatsApp</button>
 </div></div>
@@ -2387,7 +2672,7 @@ if(!localStorage.getItem('hk_token')){
   <div id="agree-preview-content"></div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
     <button class="btn sec" onclick="shareAgreementWA()">📱 WhatsApp</button>
-    <button class="btn" onclick="generateAgreementPDF()">📄 PDF &amp; Email</button>
+    <button class="btn" onclick="generateAndEmailAgreement()">📧 Download PDF &amp; Email</button>
   </div>
   <button class="btn sec" style="margin-top:8px;font-size:12px" onclick="markSigned()">✅ Mark as Signed</button>
 </div></div>
