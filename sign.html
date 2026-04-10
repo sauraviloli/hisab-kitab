@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Sign Agreement — Hisab-Kitab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g:#00C896;--gd:#009970;--r:#FF5C7A;--b:#818CF8;
+  --bg:#F0F3FF;--s:#FFFFFF;--s2:#F5F6FF;
+  --t:#0F1130;--t2:#5B6080;--t3:#9DA0BC;
+  --bdr:rgba(100,100,200,0.1);
+  --sh:0 4px 20px rgba(80,80,180,.1);
+  --sh2:0 8px 40px rgba(80,80,180,.15);
+  --r1:12px;--r2:16px;--r3:20px;--r4:26px;--rf:100px;
+  --f:'Plus Jakarta Sans',-apple-system,sans-serif;
+}
+html,body{min-height:100%;font-family:var(--f);background:var(--bg);color:var(--t);-webkit-font-smoothing:antialiased}
+
+/* LOADING */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:100}
+.load-logo{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,#00C896,#009970);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 28px rgba(0,200,150,.4);animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(0.94)}}
+.load-logo svg{width:36px;height:36px}
+.load-text{font-size:13px;color:var(--t3);font-weight:600}
+
+/* ERROR STATE */
+#error-view{display:none;max-width:440px;margin:0 auto;padding:40px 20px;text-align:center}
+.error-icon{font-size:48px;margin-bottom:16px}
+.error-title{font-size:20px;font-weight:800;margin-bottom:8px;color:var(--t)}
+.error-msg{font-size:14px;color:var(--t2);line-height:1.6}
+
+/* SIGNED STATE */
+#signed-view{display:none;max-width:520px;margin:0 auto;padding:32px 16px}
+.signed-card{background:var(--s);border-radius:var(--r4);box-shadow:var(--sh2);overflow:hidden;border:1px solid var(--bdr)}
+.signed-success{background:linear-gradient(135deg,rgba(0,200,150,.15),rgba(0,200,150,.05));padding:32px;text-align:center;border-bottom:1px solid rgba(0,200,150,.2)}
+.signed-check{width:64px;height:64px;background:linear-gradient(135deg,var(--g),var(--gd));border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 4px 16px rgba(0,200,150,.4)}
+.signed-check svg{width:32px;height:32px}
+.signed-title{font-size:22px;font-weight:900;color:var(--t);margin-bottom:6px}
+.signed-sub{font-size:13px;color:var(--t2);line-height:1.6}
+.signed-sig-box{padding:24px;background:var(--s2);border-bottom:1px solid var(--bdr)}
+.sig-preview-lbl{font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.sig-preview-img{max-width:100%;max-height:80px;display:block;margin-bottom:6px;border-bottom:2px solid var(--t)}
+.signed-meta{font-size:12px;color:var(--t3);font-weight:600}
+.signed-email-notice{padding:20px 24px;font-size:13px;color:var(--t2);line-height:1.6;display:flex;gap:10px;align-items:flex-start}
+.signed-email-notice svg{flex-shrink:0;margin-top:2px}
+
+/* MAIN SIGNING VIEW */
+#main-view{display:none;max-width:640px;margin:0 auto;padding:0 0 40px}
+
+/* HEADER */
+.agr-header{background:#0F1130;padding:24px 24px 20px;position:sticky;top:0;z-index:50}
+.agr-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.agr-biz{font-size:17px;font-weight:900;color:white}
+.agr-biz-sub{font-size:11px;color:rgba(255,255,255,.5)}
+.agr-logo{width:44px;height:44px;border-radius:8px;object-fit:contain;background:white;padding:3px}
+.agr-progress{height:3px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
+.agr-progress-bar{height:100%;background:linear-gradient(90deg,var(--g),var(--gd));border-radius:2px;transition:width .4s ease}
+.step-label{font-size:10px;color:rgba(255,255,255,.4);margin-top:6px;font-weight:600;letter-spacing:.04em}
+
+/* STEPS */
+.step{display:none;padding:0 16px}
+.step.act{display:block;animation:stepIn .25s ease}
+@keyframes stepIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* AGREEMENT CONTENT */
+.agr-title-bar{padding:20px 16px 0}
+.agr-doc-title{font-size:20px;font-weight:900;color:var(--t);margin-bottom:4px}
+.agr-doc-date{font-size:12px;color:var(--t3);font-weight:600}
+.agr-section{background:var(--s);border-radius:var(--r2);margin:12px 16px 0;box-shadow:var(--sh);border:1px solid var(--bdr);overflow:hidden}
+.agr-section-hdr{padding:14px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px}
+.agr-section-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.agr-section-title{font-size:12px;font-weight:800;color:var(--t2);text-transform:uppercase;letter-spacing:.06em}
+.agr-section-body{padding:16px}
+.term-item{display:flex;gap:10px;margin-bottom:12px;align-items:flex-start}
+.term-item:last-child{margin-bottom:0}
+.term-num{width:22px;height:22px;border-radius:6px;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--t3);flex-shrink:0;margin-top:1px}
+.term-text{font-size:13px;color:var(--t);line-height:1.65;font-weight:400}
+.detail-row{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--bdr);font-size:13px}
+.detail-row:last-child{border-bottom:none}
+.detail-lbl{color:var(--t3);font-weight:600;flex-shrink:0;margin-right:12px}
+.detail-val{color:var(--t);font-weight:700;text-align:right}
+
+/* SIGNATURE STEP */
+.sig-step-pad{padding:16px}
+.sig-tabs{display:flex;background:var(--s2);border-radius:var(--r1);padding:3px;gap:3px;margin-bottom:16px;border:1px solid var(--bdr)}
+.sig-tab{flex:1;padding:9px;font-size:13px;font-weight:700;border:none;background:transparent;color:var(--t2);cursor:pointer;font-family:var(--f);border-radius:9px;transition:all .2s;text-align:center}
+.sig-tab.act{background:var(--s);color:var(--t);box-shadow:var(--sh)}
+.canvas-wrap{border:2px solid var(--bdr);border-radius:var(--r1);background:white;position:relative;overflow:hidden;touch-action:none}
+.canvas-wrap canvas{display:block;width:100%;cursor:crosshair;touch-action:none}
+.canvas-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.canvas-placeholder-text{font-size:14px;color:#D1D5DB;font-weight:600;font-style:italic}
+.sig-clear{font-size:12px;font-weight:700;color:var(--t3);background:none;border:none;cursor:pointer;font-family:var(--f);padding:8px 0;text-decoration:underline;display:block;margin:8px 0 0}
+.typed-sig-input{width:100%;padding:14px;font-size:22px;font-family:'Dancing Script','Brush Script MT',cursive,'Plus Jakarta Sans';border:2px solid var(--bdr);border-radius:var(--r1);color:var(--t);background:white;outline:none;text-align:center}
+.typed-sig-input:focus{border-color:var(--g);box-shadow:0 0 0 3px rgba(0,200,150,.1)}
+.sig-name-row{margin-top:12px}
+.sig-name-row label{font-size:10px;font-weight:800;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:5px}
+.sig-name-row input{width:100%;padding:10px 13px;font-size:14px;font-family:var(--f);background:var(--s2);border:1.5px solid var(--bdr);border-radius:var(--r1);color:var(--t);outline:none;font-weight:500;transition:border-color .2s}
+.sig-name-row input:focus{border-color:var(--g);background:var(--s)}
+.consent-box{background:rgba(0,200,150,.06);border:1px solid rgba(0,200,150,.2);border-radius:var(--r1);padding:14px 16px;margin:16px 0 0;display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+.consent-box input[type=checkbox]{width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--g);cursor:pointer}
+.consent-text{font-size:12px;color:var(--t2);line-height:1.65;font-weight:500}
+.consent-text strong{color:var(--t)}
+
+/* BUTTONS */
+.btn-row{padding:16px 16px 0;display:flex;gap:10px}
+.btn{flex:1;padding:14px;border-radius:var(--r2);border:none;font-size:14px;font-weight:800;cursor:pointer;font-family:var(--f);transition:all .2s;letter-spacing:.01em}
+.btn.primary{background:linear-gradient(135deg,var(--g),var(--gd));color:white;box-shadow:0 4px 14px rgba(0,200,150,.3)}
+.btn.primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,200,150,.4)}
+.btn.primary:disabled{background:#CBD5E1;color:#94A3B8;cursor:not-allowed;transform:none;box-shadow:none}
+.btn.sec{background:var(--s2);color:var(--t2);border:1.5px solid var(--bdr)}
+.btn.sec:hover{background:var(--bg)}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* FOOTER */
+.sign-footer{text-align:center;padding:20px 16px 0;font-size:11px;color:var(--t3)}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="load-logo">
+    <svg viewBox="0 0 36 36" fill="none"><rect x="5" y="5" width="26" height="26" rx="5" fill="white" opacity=".9"/><line x1="10" y1="13" x2="26" y2="13" stroke="#00C896" stroke-width="2" stroke-linecap="round"/><line x1="10" y1="18" x2="20" y2="18" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round"/><line x1="10" y1="23" x2="22" y2="23" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round"/></svg>
+  </div>
+  <div class="load-text">Loading agreement...</div>
+</div>
+
+<!-- ERROR -->
+<div id="error-view">
+  <div class="error-icon">⚠️</div>
+  <div class="error-title">Agreement Not Found</div>
+  <div class="error-msg" id="error-msg">This signing link may have expired or is invalid. Please contact the business directly.</div>
+</div>
+
+<!-- ALREADY SIGNED -->
+<div id="signed-view"></div>
+
+<!-- MAIN SIGNING VIEW -->
+<div id="main-view">
+  <!-- STICKY HEADER -->
+  <div class="agr-header">
+    <div class="agr-header-top">
+      <div>
+        <div class="agr-biz" id="hdr-biz"></div>
+        <div class="agr-biz-sub" id="hdr-sub"></div>
+      </div>
+      <img id="hdr-logo" class="agr-logo" style="display:none" alt="Logo"/>
+    </div>
+    <div class="agr-progress"><div class="agr-progress-bar" id="progress-bar" style="width:33%"></div></div>
+    <div class="step-label" id="step-label">Step 1 of 3 — Read Agreement</div>
+  </div>
+
+  <!-- STEP 1: READ AGREEMENT -->
+  <div class="step act" id="step1">
+    <div class="agr-title-bar">
+      <div class="agr-doc-title" id="agr-title"></div>
+      <div class="agr-doc-date" id="agr-date"></div>
+    </div>
+    <!-- Terms -->
+    <div class="agr-section">
+      <div class="agr-section-hdr">
+        <div class="agr-section-icon" style="background:rgba(129,140,248,.1)">📋</div>
+        <div class="agr-section-title">Terms & Conditions</div>
+      </div>
+      <div class="agr-section-body" id="terms-body"></div>
+    </div>
+    <!-- Booking details -->
+    <div class="agr-section" id="booking-section" style="display:none">
+      <div class="agr-section-hdr">
+        <div class="agr-section-icon" style="background:rgba(0,200,150,.1)">📅</div>
+        <div class="agr-section-title">Booking Details</div>
+      </div>
+      <div class="agr-section-body" id="booking-body"></div>
+    </div>
+    <!-- Client details -->
+    <div class="agr-section" id="client-section" style="display:none">
+      <div class="agr-section-hdr">
+        <div class="agr-section-icon" style="background:rgba(245,158,11,.1)">👤</div>
+        <div class="agr-section-title">Your Details</div>
+      </div>
+      <div class="agr-section-body" id="client-body"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" onclick="goStep(2)">I've Read the Agreement →</button>
+    </div>
+    <div class="sign-footer">Powered by Hisab-Kitab · Secure E-Signatures</div>
+  </div>
+
+  <!-- STEP 2: SIGN -->
+  <div class="step" id="step2">
+    <div class="sig-step-pad">
+      <div style="font-size:17px;font-weight:800;color:var(--t);margin-bottom:4px">Sign the Agreement</div>
+      <div style="font-size:13px;color:var(--t2);margin-bottom:16px;line-height:1.6">
+        Choose how you'd like to sign. Your signature will be timestamped and legally binding.
+      </div>
+      <!-- Draw vs Type tabs -->
+      <div class="sig-tabs">
+        <button class="sig-tab act" id="tab-draw" onclick="setSigMode('draw')">✍️ Draw</button>
+        <button class="sig-tab" id="tab-type" onclick="setSigMode('type')">⌨️ Type</button>
+      </div>
+      <!-- DRAW PAD -->
+      <div id="draw-pad">
+        <div class="canvas-wrap" id="canvas-wrap">
+          <canvas id="sig-canvas" height="160"></canvas>
+          <div class="canvas-placeholder" id="canvas-ph">
+            <div class="canvas-placeholder-text">Draw your signature here</div>
+          </div>
+        </div>
+        <button class="sig-clear" onclick="clearCanvas()">✕ Clear and redraw</button>
+      </div>
+      <!-- TYPE PAD -->
+      <div id="type-pad" style="display:none">
+        <input class="typed-sig-input" id="typed-sig" placeholder="Type your full name" oninput="onTypedSig(this.value)"/>
+        <div style="font-size:11px;color:var(--t3);margin-top:8px;font-weight:500">Your typed name will be rendered as your signature</div>
+      </div>
+      <!-- Full name confirmation -->
+      <div class="sig-name-row" style="margin-top:16px">
+        <label>Full Legal Name *</label>
+        <input type="text" id="sig-name" placeholder="Type your full name to confirm" oninput="checkSignReady()"/>
+      </div>
+      <!-- Consent checkbox -->
+      <label class="consent-box">
+        <input type="checkbox" id="consent-check" onchange="checkSignReady()"/>
+        <div class="consent-text">
+          I, <strong id="consent-name">the undersigned</strong>, confirm that I have read and fully understand this agreement. I agree that this electronic signature is legally binding, equivalent to my handwritten signature, and was applied on <strong id="consent-date"></strong>.
+        </div>
+      </label>
+    </div>
+    <div class="btn-row">
+      <button class="btn sec" onclick="goStep(1)" style="flex:0 0 auto;padding:14px 20px">← Back</button>
+      <button class="btn primary" id="sign-btn" onclick="submitSignature()" disabled>Sign Agreement ✓</button>
+    </div>
+    <div class="sign-footer" style="padding-bottom:20px">Your signature is encrypted and stored securely</div>
+  </div>
+
+  <!-- STEP 3: SUCCESS (inline within main-view) -->
+  <div class="step" id="step3">
+    <div style="padding:24px 16px">
+      <div style="background:var(--s);border-radius:var(--r4);box-shadow:var(--sh2);overflow:hidden;border:1px solid var(--bdr)">
+        <div style="background:linear-gradient(135deg,rgba(0,200,150,.12),rgba(0,200,150,.03));padding:32px;text-align:center;border-bottom:1px solid rgba(0,200,150,.15)">
+          <div style="width:64px;height:64px;background:linear-gradient(135deg,var(--g),var(--gd));border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 4px 16px rgba(0,200,150,.4)">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div style="font-size:22px;font-weight:900;color:var(--t);margin-bottom:6px">Agreement Signed!</div>
+          <div style="font-size:13px;color:var(--t2);line-height:1.6">Your signature has been recorded securely.<br/>A copy has been sent to your email.</div>
+        </div>
+        <!-- Signature preview -->
+        <div style="padding:20px 24px;background:var(--s2);border-bottom:1px solid var(--bdr)">
+          <div style="font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Your Signature</div>
+          <img id="final-sig-img" style="max-width:100%;max-height:80px;border-bottom:2px solid var(--t);display:block;margin-bottom:6px"/>
+          <div style="font-size:12px;font-weight:700;color:var(--t2)" id="final-sig-name"></div>
+          <div style="font-size:11px;color:var(--t3);margin-top:3px" id="final-sig-time"></div>
+        </div>
+        <!-- What happens next -->
+        <div style="padding:20px 24px">
+          <div style="font-size:12px;font-weight:800;color:var(--t2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">What happens next</div>
+          <div style="display:flex;gap:10px;margin-bottom:10px;align-items:flex-start">
+            <div style="width:24px;height:24px;background:rgba(0,200,150,.1);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px">📧</div>
+            <div style="font-size:13px;color:var(--t2);line-height:1.5">You'll receive a <strong>confirmation email</strong> with a full copy of the signed agreement including your signature.</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div style="width:24px;height:24px;background:rgba(129,140,248,.1);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px">✅</div>
+            <div style="font-size:13px;color:var(--t2);line-height:1.5">The <strong id="success-biz-name"></strong> team will be notified that you've signed and your booking is confirmed.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sign-footer">Signed via Hisab-Kitab · Secure E-Signatures</div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let agr = null;
+let sigMode = 'draw';
+let hasDrawn = false;
+let isDrawing = false;
+let lastX = 0, lastY = 0;
+let ctx = null;
+let canvas = null;
+
+// ── INIT ──
+const token = new URLSearchParams(location.search).get('token');
+if (!token) {
+  showError('No signing token found in this URL. Please use the link from your email.');
+} else {
+  loadAgreement(token);
+}
+
+async function loadAgreement(tok) {
+  try {
+    const res = await fetch('/api/agreement', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'get', token: tok })
+    });
+    const data = await res.json();
+    if (data.error || !data.agreement) {
+      showError(data.error || 'Agreement not found.');
+      return;
+    }
+    agr = data.agreement;
+
+    if (agr.status === 'signed') {
+      showAlreadySigned();
+      return;
+    }
+    renderAgreement();
+  } catch (e) {
+    showError('Could not load agreement. Please check your internet connection and try again.');
+  }
+}
+
+function showError(msg) {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('error-view').style.display = 'block';
+  document.getElementById('error-msg').textContent = msg;
+}
+
+function showAlreadySigned() {
+  document.getElementById('loading').style.display = 'none';
+  const el = document.getElementById('signed-view');
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div style="max-width:520px;margin:0 auto;padding:32px 16px">
+      <div class="signed-card">
+        <div class="signed-success">
+          <div class="signed-check">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="signed-title">Already Signed</div>
+          <div class="signed-sub">This agreement was signed by <strong>${agr.signed_name || agr.client_name}</strong>${agr.signed_at ? '<br/>on ' + new Date(agr.signed_at).toLocaleString() : ''}.</div>
+        </div>
+        ${agr.signature_data && agr.signature_data.startsWith('data:image') ? `
+        <div class="signed-sig-box">
+          <div class="sig-preview-lbl">Signature on Record</div>
+          <img class="sig-preview-img" src="${agr.signature_data}" alt="Signature"/>
+          <div class="signed-meta">${agr.signed_name || agr.client_name} · ${agr.signed_at ? new Date(agr.signed_at).toLocaleString() : ''}</div>
+        </div>` : ''}
+        <div class="signed-email-notice">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9DA0BC" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 7L2 7"/></svg>
+          <div>A copy of the signed agreement was sent to <strong>${agr.client_email || 'your email'}</strong>.</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderAgreement() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('main-view').style.display = 'block';
+
+  // Header
+  document.getElementById('hdr-biz').textContent = agr.biz_name || '';
+  document.getElementById('hdr-sub').textContent = agr.biz_phone || agr.biz_addr || '';
+  if (agr.biz_logo) {
+    const logo = document.getElementById('hdr-logo');
+    logo.src = agr.biz_logo;
+    logo.style.display = 'block';
+  }
+
+  // Title
+  document.getElementById('agr-title').textContent = agr.title || 'Service Agreement';
+  document.getElementById('agr-date').textContent = 'Prepared: ' + new Date(agr.created_at || Date.now()).toLocaleDateString();
+
+  // Terms
+  const terms = Array.isArray(agr.terms) ? agr.terms : [];
+  document.getElementById('terms-body').innerHTML = terms.map((t, i) =>
+    `<div class="term-item"><div class="term-num">${i+1}</div><div class="term-text">${t}</div></div>`
+  ).join('');
+
+  // Booking details
+  const fields = agr.fields || {};
+  const bookingRows = [
+    ['Service / Vehicle', fields.service],
+    ['Reference No.', fields.rego],
+    ['Start Date', fields.start],
+    ['End Date', fields.end],
+    ['Pick-up', fields.pickup],
+    ['Return / Drop-off', fields.dropoff],
+    ['Deposit Paid', fields.depPaid],
+    ['Security Deposit', fields.security],
+    ['Balance Due', fields.balance],
+  ].filter(r => r[1]);
+  if (bookingRows.length) {
+    document.getElementById('booking-section').style.display = 'block';
+    document.getElementById('booking-body').innerHTML = bookingRows.map(([l, v]) =>
+      `<div class="detail-row"><span class="detail-lbl">${l}</span><span class="detail-val">${v}</span></div>`
+    ).join('');
+  }
+
+  // Client details
+  const clientRows = [
+    ['Your Name', fields.clientName || agr.client_name],
+    ['Licence / ID', fields.licence],
+    ['Phone', fields.clientPhone || ''],
+    ['Address', fields.clientAddr],
+    ['Emergency Contact', fields.ecName ? fields.ecName + (fields.ecPhone ? ' · ' + fields.ecPhone : '') : null],
+  ].filter(r => r[1]);
+  if (clientRows.length) {
+    document.getElementById('client-section').style.display = 'block';
+    document.getElementById('client-body').innerHTML = clientRows.map(([l, v]) =>
+      `<div class="detail-row"><span class="detail-lbl">${l}</span><span class="detail-val">${v}</span></div>`
+    ).join('');
+  }
+
+  // Pre-fill name
+  const nameInput = document.getElementById('sig-name');
+  if (agr.client_name) nameInput.value = agr.client_name;
+  updateConsentText(agr.client_name || '');
+
+  // Set consent date
+  document.getElementById('consent-date').textContent = new Date().toLocaleDateString();
+
+  // Init canvas
+  initCanvas();
+}
+
+// ── STEPS ──
+let currentStep = 1;
+function goStep(n) {
+  document.getElementById('step' + currentStep).classList.remove('act');
+  document.getElementById('step' + n).classList.add('act');
+  currentStep = n;
+  const pcts = { 1: '33%', 2: '66%', 3: '100%' };
+  const labels = { 1: 'Step 1 of 3 — Read Agreement', 2: 'Step 2 of 3 — Sign', 3: 'Step 3 of 3 — Done' };
+  document.getElementById('progress-bar').style.width = pcts[n];
+  document.getElementById('step-label').textContent = labels[n];
+  window.scrollTo(0, 0);
+}
+
+// ── SIGNATURE MODES ──
+function setSigMode(mode) {
+  sigMode = mode;
+  document.getElementById('tab-draw').classList.toggle('act', mode === 'draw');
+  document.getElementById('tab-type').classList.toggle('act', mode === 'type');
+  document.getElementById('draw-pad').style.display = mode === 'draw' ? 'block' : 'none';
+  document.getElementById('type-pad').style.display = mode === 'type' ? 'block' : 'none';
+  checkSignReady();
+}
+
+function onTypedSig(val) {
+  updateConsentText(val || document.getElementById('sig-name').value || '');
+  checkSignReady();
+}
+
+// ── CANVAS ──
+function initCanvas() {
+  canvas = document.getElementById('sig-canvas');
+  ctx = canvas.getContext('2d');
+  // Set actual pixel dimensions
+  const wrap = document.getElementById('canvas-wrap');
+  const w = wrap.clientWidth || 560;
+  canvas.width = w * window.devicePixelRatio;
+  canvas.height = 160 * window.devicePixelRatio;
+  canvas.style.width = w + 'px';
+  canvas.style.height = '160px';
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  ctx.strokeStyle = '#0F1130';
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  // Mouse events
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', endDraw);
+  canvas.addEventListener('mouseleave', endDraw);
+  // Touch events
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); startDraw(e.touches[0]); }, { passive: false });
+  canvas.addEventListener('touchmove', e => { e.preventDefault(); draw(e.touches[0]); }, { passive: false });
+  canvas.addEventListener('touchend', endDraw, { passive: false });
+}
+
+function getPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
+function startDraw(e) {
+  isDrawing = true;
+  const pos = getPos(e);
+  lastX = pos.x; lastY = pos.y;
+  document.getElementById('canvas-ph').style.display = 'none';
+}
+function draw(e) {
+  if (!isDrawing) return;
+  const pos = getPos(e);
+  ctx.beginPath();
+  ctx.moveTo(lastX, lastY);
+  ctx.lineTo(pos.x, pos.y);
+  ctx.stroke();
+  lastX = pos.x; lastY = pos.y;
+  hasDrawn = true;
+  checkSignReady();
+}
+function endDraw() { isDrawing = false; }
+function clearCanvas() {
+  ctx.clearRect(0, 0, canvas.width / window.devicePixelRatio, canvas.height / window.devicePixelRatio);
+  hasDrawn = false;
+  document.getElementById('canvas-ph').style.display = 'flex';
+  checkSignReady();
+}
+
+function getSignatureData() {
+  if (sigMode === 'draw') {
+    if (!hasDrawn) return null;
+    // Create a white-background version
+    const offscreen = document.createElement('canvas');
+    offscreen.width = canvas.width;
+    offscreen.height = canvas.height;
+    const octx = offscreen.getContext('2d');
+    octx.fillStyle = 'white';
+    octx.fillRect(0, 0, offscreen.width, offscreen.height);
+    octx.drawImage(canvas, 0, 0);
+    return offscreen.toDataURL('image/png');
+  } else {
+    const typed = document.getElementById('typed-sig').value.trim();
+    if (!typed) return null;
+    // Render typed sig to canvas
+    const offscreen = document.createElement('canvas');
+    offscreen.width = 480 * window.devicePixelRatio;
+    offscreen.height = 100 * window.devicePixelRatio;
+    const octx = offscreen.getContext('2d');
+    octx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    octx.fillStyle = 'white';
+    octx.fillRect(0, 0, 480, 100);
+    octx.fillStyle = '#0F1130';
+    octx.font = '42px "Dancing Script", cursive';
+    octx.textBaseline = 'middle';
+    octx.fillText(typed, 20, 50);
+    return offscreen.toDataURL('image/png');
+  }
+}
+
+function updateConsentText(name) {
+  const el = document.getElementById('consent-name');
+  if (el) el.textContent = name || 'the undersigned';
+}
+
+function checkSignReady() {
+  const name = document.getElementById('sig-name').value.trim();
+  const consent = document.getElementById('consent-check').checked;
+  const hasSig = sigMode === 'draw' ? hasDrawn : !!document.getElementById('typed-sig').value.trim();
+  const btn = document.getElementById('sign-btn');
+  btn.disabled = !(name && consent && hasSig);
+  if (name) updateConsentText(name);
+}
+
+// ── SUBMIT ──
+async function submitSignature() {
+  const name = document.getElementById('sig-name').value.trim();
+  const sigData = getSignatureData();
+  if (!name || !sigData) return;
+
+  const btn = document.getElementById('sign-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Signing...';
+
+  try {
+    const res = await fetch('/api/agreement', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'sign',
+        token,
+        signedName: name,
+        signatureData: sigData,
+      })
+    });
+    const data = await res.json();
+    if (data.error) {
+      btn.disabled = false;
+      btn.innerHTML = 'Sign Agreement ✓';
+      alert('Error: ' + data.error);
+      return;
+    }
+
+    // Show success step
+    document.getElementById('final-sig-img').src = sigData;
+    document.getElementById('final-sig-name').textContent = name;
+    document.getElementById('final-sig-time').textContent = 'Signed: ' + new Date().toLocaleString();
+    document.getElementById('success-biz-name').textContent = agr.biz_name || '';
+    goStep(3);
+
+  } catch (e) {
+    btn.disabled = false;
+    btn.innerHTML = 'Sign Agreement ✓';
+    alert('Network error. Please try again.');
+  }
+}
+
+// Recalc canvas size on resize
+window.addEventListener('resize', () => {
+  if (canvas && ctx) {
+    // Save current drawing
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const wrap = document.getElementById('canvas-wrap');
+    const w = wrap.clientWidth || 560;
+    canvas.width = w * window.devicePixelRatio;
+    canvas.style.width = w + 'px';
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    ctx.strokeStyle = '#0F1130';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    if (hasDrawn) ctx.putImageData(imgData, 0, 0);
+  }
+});
+</script>
+</body>
+</html>
