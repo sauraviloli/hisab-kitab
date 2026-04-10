@@ -309,6 +309,17 @@ textarea{resize:vertical;min-height:56px}
 .am.user{background:linear-gradient(135deg,var(--g),var(--gd));color:white;align-self:flex-end;max-width:85%;font-weight:600}
 .am.loading{background:var(--s);color:var(--t3);font-style:italic;border:1px solid var(--bdr)}
 
+/* CLIENT AUTOCOMPLETE */
+.client-ac-wrap{position:relative}
+.client-ac-dd{position:absolute;top:calc(100% + 3px);left:0;right:0;background:var(--s);border:1.5px solid var(--g);border-radius:var(--r1);box-shadow:var(--sh3);z-index:400;max-height:200px;overflow-y:auto;display:none}
+.client-ac-dd.open{display:block}
+.client-ac-opt{padding:10px 13px;cursor:pointer;border-bottom:1px solid var(--bdr);transition:background .15s;display:flex;align-items:center;gap:10px}
+.client-ac-opt:hover,.client-ac-opt:active{background:rgba(0,200,150,.08)}
+.client-ac-opt:last-child{border-bottom:none}
+.ca-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--g),var(--gd));color:white;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0}
+.ca-name{font-size:13px;font-weight:700;color:var(--t)}
+.ca-sub{font-size:11px;color:var(--t3);margin-top:1px}
+
 /* DEPOSITS & UDHARO TAB */
 .dep-card{background:var(--s);border-radius:var(--r2);padding:14px 16px;box-shadow:var(--sh);border:1px solid var(--bdr);margin-bottom:8px;transition:all .2s;cursor:pointer}
 .dep-card:hover{box-shadow:var(--sh2);transform:translateY(-1px)}
@@ -1292,7 +1303,7 @@ async function syncCloud(){
     if(cR.data)customers=cR.data;
     if(iR.data)invoices=iR.data;
     if(pR.data){const p=pR.data;prefs={...prefs,bizName:p.biz_name||prefs.bizName,pan:p.pan||'',vat:p.vat_num||'',bizType:p.biz_type||'retail',bizAddr:p.biz_addr||'',bizPhone:p.biz_phone||'',ownerName:p.owner_name||'',region:p.country||'NP',businessMode:p.business_mode||p.biz_type||'retail',workspaceId:p.workspace_id||null};}
-    saveLocal();setSyncStatus('ok');updateUI();
+    saveLocal();setSyncStatus('ok');updateUI();checkAgreementStatus();
   }catch(e){setSyncStatus('err')}
 }
 function setSyncStatus(s){const d=document.getElementById('sync-dot');if(!d)return;d.className='sync-dot'+(s==='sy'?' sy':s==='err'?' err':'');}
@@ -1424,6 +1435,44 @@ function renderQuickCats(){
   // Show quick action buttons + category shortcuts
   const cats=b.cats.slice(0,5);
   el.innerHTML=cats.map(c=>`<button class="qct" onclick="document.getElementById('cat').value='${c}'">${c}</button>`).join('');
+}
+
+// ── CLIENT AUTOCOMPLETE IN DEPOSIT FORM ──
+function clientAC(val){
+  const dd=document.getElementById('client-ac-dd');
+  if(!dd)return;
+  const q=(val||'').toLowerCase().trim();
+  // Show all if focused with empty, or filter by name
+  const matches=customers.filter(cu=>
+    !q || cu.name.toLowerCase().includes(q) ||
+    (cu.phone&&cu.phone.includes(q))
+  ).slice(0,6);
+  if(!matches.length){dd.classList.remove('open');return;}
+  dd.innerHTML=matches.map(cu=>`
+    <div class="client-ac-opt" onmousedown="event.preventDefault();fillClientFromAC('${cu.id}')">
+      <div class="ca-avatar">${cu.name.trim()[0].toUpperCase()}</div>
+      <div>
+        <div class="ca-name">${cu.name}</div>
+        <div class="ca-sub">${[cu.phone,cu.email,cu.addr].filter(Boolean).join(' · ')}</div>
+      </div>
+    </div>`).join('');
+  dd.classList.add('open');
+}
+
+function fillClientFromAC(id){
+  const cu=customers.find(c=>c.id===id||String(c.id)===String(id));
+  if(!cu)return;
+  const n=document.getElementById('nd-customer');if(n)n.value=cu.name;
+  const p=document.getElementById('nd-phone');if(p)p.value=cu.phone||'';
+  const e=document.getElementById('nd-email');if(e)e.value=cu.email||'';
+  closeClientAC();
+  // Focus next field
+  setTimeout(()=>document.getElementById('nd-service')?.focus(),100);
+}
+
+function closeClientAC(){
+  const dd=document.getElementById('client-ac-dd');
+  if(dd)dd.classList.remove('open');
 }
 
 // Auto-calc deposit balance
@@ -1947,32 +1996,96 @@ function renderDeposits(){
 function openDepDetail(id){
   const dep=deposits.find(d=>d.id===id);if(!dep)return;
   currentDepositId=id;
-  const sym=rg().sym;
+
+  // Build signed section HTML separately (helper function)
+  let signedHtml='';
+  if(dep.signed){
+    signedHtml=`<div style="margin-top:12px;padding:14px;background:rgba(0,200,150,.07);border:1px solid rgba(0,200,150,.2);border-radius:var(--r1)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="width:24px;height:24px;background:linear-gradient(135deg,var(--g),var(--gd));border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:800;color:var(--gd)">Agreement Signed</div>
+          <div style="font-size:11px;color:var(--t2)">by ${dep.signedName||dep.customer}${dep.signedDate?' on '+dep.signedDate:''}</div>
+        </div>
+      </div>
+      ${dep.signatureData&&dep.signatureData.startsWith('data:image')?
+        `<div style="background:white;border:1px solid var(--bdr);border-radius:var(--r1);padding:10px;text-align:center">
+          <div style="font-size:9px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Signature</div>
+          <img src="${dep.signatureData}" style="max-width:220px;max-height:70px;display:block;margin:0 auto;border-bottom:2px solid var(--t)"/>
+          <div style="font-size:11px;color:var(--t2);margin-top:5px;font-weight:600">${dep.signedName||''}</div>
+        </div>` : ''}
+      <button class="dep-action-btn" style="margin-top:10px;width:100%;text-align:center;justify-content:center" onclick="viewSignedAgreement('${id}')">📄 View Signed Agreement</button>
+    </div>`;
+  }
+
   document.getElementById('ddm-title').textContent=dep.service;
   document.getElementById('ddm-content').innerHTML=`
-    <div style="background:var(--s2);border-radius:var(--r1);padding:14px;margin-bottom:12px">
-      <div style="font-size:16px;font-weight:800;margin-bottom:2px">${dep.customer}</div>
-      <div style="font-size:13px;color:var(--t2)">${dep.phone?'📞 '+dep.phone:''} ${dep.email?'✉️ '+dep.email:''}</div>
+    <div style="background:var(--s2);border-radius:var(--r1);padding:14px;margin-bottom:12px;border:1px solid var(--bdr)">
+      <div style="font-size:16px;font-weight:800;margin-bottom:4px">${dep.customer}</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        ${dep.phone?`<a href="tel:${dep.phone}" style="font-size:12px;color:var(--t2);text-decoration:none;display:flex;align-items:center;gap:4px">📞 ${dep.phone}</a>`:''}
+        ${dep.email?`<a href="mailto:${dep.email}" style="font-size:12px;color:var(--t2);text-decoration:none;display:flex;align-items:center;gap:4px">✉️ ${dep.email}</a>`:''}
+      </div>
     </div>
     <div class="dep-amounts" style="margin-bottom:10px">
       <div class="dep-amt-item"><div class="dep-amt-lbl">Total</div><div class="dep-amt-val">${dep.total>0?fmt(dep.total):'—'}</div></div>
-      <div class="dep-amt-item"><div class="dep-amt-lbl">Paid</div><div class="dep-amt-val" style="color:var(--g)">${fmt(dep.depositAmt)}</div></div>
-      <div class="dep-amt-item"><div class="dep-amt-lbl">Balance</div><div class="dep-amt-val" style="color:${dep.balance<=0?'var(--gd)':'var(--r)'}">${fmt(dep.balance)}</div></div>
+      <div class="dep-amt-item"><div class="dep-amt-lbl">Deposit Paid</div><div class="dep-amt-val" style="color:var(--g)">${fmt(dep.depositAmt)}</div></div>
+      <div class="dep-amt-item"><div class="dep-amt-lbl">Balance Due</div><div class="dep-amt-val" style="color:${dep.balance<=0?'var(--gd)':'var(--r)'}">${fmt(dep.balance)}</div></div>
     </div>
-    ${dep.start?`<div style="font-size:12px;color:var(--t2);margin-bottom:4px">📅 ${dep.start}${dep.end?' → '+dep.end:''}</div>`:''}
-    ${dep.vehicle?`<div style="font-size:12px;color:var(--t2);margin-bottom:4px">🚗 ${dep.vehicle}${dep.rego?' ('+dep.rego+')':''}</div>`:''}
-    ${dep.destination?`<div style="font-size:12px;color:var(--t2);margin-bottom:4px">📍 ${dep.destination}</div>`:''}
-    ${dep.notes?`<div style="font-size:12px;color:var(--t3);margin-top:8px;font-style:italic">${dep.notes}</div>`:''}
-    ${dep.signed?`<div class="signed-badge" style="margin-top:10px">✅ Agreement signed ${dep.signedDate?'on '+dep.signedDate:''}</div>`:''}
+    ${dep.start?`<div style="font-size:12px;color:var(--t2);margin-bottom:4px;display:flex;align-items:center;gap:6px">📅 <span>${dep.start}${dep.end?' → '+dep.end:''}</span></div>`:''}
+    ${dep.vehicle?`<div style="font-size:12px;color:var(--t2);margin-bottom:4px;display:flex;align-items:center;gap:6px">🚗 <span>${dep.vehicle}${dep.rego?' · '+dep.rego:''}</span></div>`:''}
+    ${dep.destination?`<div style="font-size:12px;color:var(--t2);margin-bottom:4px;display:flex;align-items:center;gap:6px">📍 <span>${dep.destination}</span></div>`:''}
+    ${dep.notes?`<div style="font-size:12px;color:var(--t3);margin-top:6px;font-style:italic;line-height:1.5">${dep.notes}</div>`:''}
+    ${signedHtml}
   `;
   document.getElementById('ddm-actions').innerHTML=`
-    <button class="dep-action-btn primary" onclick="openAgreementBuilder('${id}');closeMod('dep-detail-modal')">📄 View / Send Agreement</button>
+    <button class="dep-action-btn primary" onclick="openAgreementBuilder('${id}');closeMod('dep-detail-modal')">📄 ${dep.signed?'View / Resend Agreement':'Create Agreement'}</button>
     ${dep.phone?`<button class="dep-action-btn wa" onclick="depWhatsApp('${id}')">📱 WhatsApp</button>`:''}
     ${dep.email?`<button class="dep-action-btn email" onclick="depEmail('${id}')">✉️ Email</button>`:''}
     ${dep.balance>0?`<button class="dep-action-btn" onclick="depMarkPaid('${id}');closeMod('dep-detail-modal')">💰 Mark Fully Paid</button>`:''}
-    ${!dep.signed?`<button class="dep-action-btn" onclick="depMarkSigned('${id}');closeMod('dep-detail-modal')">✅ Mark Agreement Signed</button>`:''}
+    ${!dep.signed?`<button class="dep-action-btn" onclick="depMarkSigned('${id}');renderDeposits();closeMod('dep-detail-modal')">✅ Mark Signed</button>`:''}
   `;
   document.getElementById('dep-detail-modal').style.display='flex';
+}
+
+function viewSignedAgreement(id){
+  const dep=deposits.find(d=>d.id===id);if(!dep)return;
+  currentDepositId=id;
+  // Rebuild agreement terms from stored data or defaults
+  if(dep.agreementData&&dep.agreementData.terms){
+    agreementTerms=[...dep.agreementData.terms];
+    // Pre-fill all the agreement builder fields from stored data
+    const fields=dep.agreementData.fields||{};
+    const fill=(elId,val)=>{const el=document.getElementById(elId);if(el&&val!==undefined)el.value=val;};
+    fill('ag-biz',prefs.bizName);fill('ag-addr',prefs.bizAddr);fill('ag-phone',prefs.bizPhone);
+    fill('ag-title',dep.agreementData.title||'Service Agreement');
+    fill('ag-service',fields.service||dep.vehicle||dep.service);
+    fill('ag-rego',fields.rego||dep.rego);
+    fill('ag-start',fields.start||dep.start);fill('ag-end',fields.end||dep.end);
+    fill('ag-pickup',fields.pickup||dep.pickup);fill('ag-dropoff',fields.dropoff||dep.dropoff);
+    fill('ag-dep-paid',fields.depPaid||fmt(dep.depositAmt));
+    fill('ag-security',fields.security||(dep.security>0?String(dep.security):''));
+    fill('ag-balance',fields.balance||(dep.balance>0?fmt(dep.balance)+' due by '+(dep.due||'TBD'):'Fully Paid'));
+    fill('ag-client-name',fields.clientName||dep.customer);
+    fill('ag-licence',fields.licence||'');fill('ag-client-phone',fields.clientPhone||dep.phone);
+    fill('ag-client-addr',fields.clientAddr||'');fill('ag-ec-name',fields.ecName||'');fill('ag-ec-phone',fields.ecPhone||'');
+  }else{
+    openAgreementBuilder(id);return;
+  }
+  // Show preview with signed indicator
+  const html=buildAgreementHTML();
+  document.getElementById('agree-preview-content').innerHTML=html;
+  // Add signed overlay
+  const sigBox=document.createElement('div');
+  sigBox.style.cssText='background:rgba(0,200,150,.08);border:1px solid rgba(0,200,150,.25);border-radius:var(--r1);padding:14px;margin-top:12px;text-align:center';
+  sigBox.innerHTML=`<div class="signed-badge" style="margin-bottom:8px;display:inline-flex">✅ Signed by ${dep.signedName||dep.customer}${dep.signedDate?' on '+dep.signedDate:''}</div>
+    ${dep.signatureData&&dep.signatureData.startsWith('data:image')?`<br/><img src="${dep.signatureData}" style="max-width:200px;max-height:60px;margin-top:6px;border-bottom:2px solid var(--t);display:block;margin:6px auto 0"/>
+    <div style="font-size:11px;color:var(--t2);margin-top:4px">${dep.signedName||''}</div>`:''}`;
+  document.getElementById('agree-preview-content').appendChild(sigBox);
+  closeMod('dep-detail-modal');
+  document.getElementById('agree-preview-modal').style.display='flex';
 }
 
 function depMarkPaid(id){const dep=deposits.find(d=>d.id===id);if(!dep)return;dep.balance=0;dep.depositAmt=dep.total||dep.depositAmt;saveLocal();renderDeposits();toast('Marked as fully paid ✓');}
@@ -2635,6 +2748,58 @@ function showSigningResult(signingUrl,email,emailSent){
   document.body.appendChild(modal);
 }
 
+// ═══════════════════════════════════════════
+// AGREEMENT STATUS POLLING
+// ═══════════════════════════════════════════
+
+async function checkAgreementStatus(){
+  if(!user||isDemo)return;
+  try{
+    const res=await fetch('/api/agreement',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'list',userId:user.id,userToken:getToken()})
+    });
+    if(!res.ok)return;
+    const data=await res.json();
+    if(!data.agreements||!data.agreements.length)return;
+    let changed=false;
+    data.agreements.forEach(agr=>{
+      if(agr.status==='signed'&&agr.deposit_id){
+        const dep=deposits.find(d=>d.id===agr.deposit_id);
+        if(dep&&!dep.signed){
+          dep.signed=true;
+          dep.signedDate=agr.signed_at?agr.signed_at.split('T')[0]:'';
+          dep.signedName=agr.signed_name||'';
+          dep.signatureData=agr.signature_data||'';
+          dep.agreementId=agr.id;
+          changed=true;
+        }
+      }
+    });
+    if(changed){
+      saveLocal();
+      renderDeposits();
+      // If deposit detail modal is open, refresh it
+      const ddm=document.getElementById('dep-detail-modal');
+      if(ddm&&ddm.style.display!=='none'&&currentDepositId){
+        openDepDetail(currentDepositId);
+      }
+      toast('✅ Agreement signed! Deposit updated.');
+    }
+  }catch(e){}
+}
+
+// Poll every 30 seconds when app is open (to catch remote signatures)
+setInterval(()=>{if(user&&!isDemo&&document.visibilityState==='visible')checkAgreementStatus();},30000);
+
+// Also check when tab becomes visible again
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&user&&!isDemo){
+    checkAgreementStatus();
+  }
+});
+
 // ═══ PWA ═══
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;const r=document.getElementById('install-row');if(r)r.style.display='flex';});
 function installPWA(){if(!deferredInstall)return;deferredInstall.prompt();deferredInstall.userChoice.then(()=>{deferredInstall=null;});}
@@ -2667,9 +2832,16 @@ if(!localStorage.getItem('hk_token')){
 <!-- NEW DEPOSIT MODAL -->
 <div class="mo" id="new-dep-modal" style="display:none"><div class="md" onclick="event.stopPropagation()"><div class="mdg"></div>
   <div class="mdt" id="new-dep-title">New Deposit <button class="mdc" onclick="closeMod('new-dep-modal')">✕</button></div>
-  <div class="fi"><label>Customer Name *</label><input type="text" id="nd-customer" placeholder="Full name"/></div>
-  <div class="fi"><label>Customer Phone</label><input type="tel" id="nd-phone" placeholder="Phone number"/></div>
-  <div class="fi"><label>Customer Email</label><input type="email" id="nd-email" placeholder="email@example.com"/></div>
+  <div class="fi">
+    <label>Customer Name *</label>
+    <div class="client-ac-wrap">
+      <input type="text" id="nd-customer" placeholder="Type to search clients..." autocomplete="off"
+        oninput="clientAC(this.value)" onfocus="clientAC(this.value)" onblur="setTimeout(()=>closeClientAC(),200)"/>
+      <div class="client-ac-dd" id="client-ac-dd"></div>
+    </div>
+  </div>
+  <div class="fi"><label>Customer Phone</label><input type="tel" id="nd-phone" placeholder="Auto-filled from client or enter manually"/></div>
+  <div class="fi"><label>Customer Email</label><input type="email" id="nd-email" placeholder="Auto-filled from client or enter manually"/></div>
   <div class="fi"><label>Service / Description *</label><input type="text" id="nd-service" placeholder="e.g. Pokhara Tour Package, Shuttle Hire..."/></div>
   <div class="fg">
     <div><label class="fl">Total Amount</label><input type="number" id="nd-total" placeholder="0" min="0" oninput="calcDepBalance()"/></div>
