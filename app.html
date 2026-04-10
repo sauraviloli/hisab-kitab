@@ -372,10 +372,13 @@ textarea{resize:vertical;min-height:56px}
 .sr.dan{color:var(--r)}
 
 /* MODAL */
-.mo{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:flex-end;justify-content:center;animation:oi .2s ease}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:flex-end;justify-content:center;animation:oi .2s ease;cursor:pointer}
+.md{cursor:default}
 @keyframes oi{from{opacity:0}to{opacity:1}}
 .md{background:var(--s);border-radius:var(--r4) var(--r4) 0 0;padding:20px 18px 36px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;animation:mi .25s ease;transition:background .3s}
 @keyframes mi{from{transform:translateY(100%)}to{transform:translateY(0)}}
+/* Prevent backdrop click from closing via content click */
+.md{pointer-events:all}
 .mdg{width:36px;height:4px;background:var(--s3);border-radius:2px;margin:0 auto 16px}
 .mdt{font-size:18px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;letter-spacing:-.2px}
 .mdc{background:var(--s2);border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--t2)}
@@ -818,7 +821,7 @@ window._authTimer = setTimeout(function(){
 </nav>
 
 <!-- MODALS -->
-<div class="mo" id="biz-modal" style="display:none"><div class="md"><div class="mdg"></div>
+<div class="mo" id="biz-modal" style="display:none"><div class="md" onclick="event.stopPropagation()"><div class="mdg"></div>
   <div class="mdt">Business Profile <button class="mdc" onclick="closeMod('biz-modal')">✕</button></div>
   <!-- Business Logo Upload -->
   <div style="margin-bottom:14px">
@@ -844,7 +847,7 @@ window._authTimer = setTimeout(function(){
   <button class="btn" onclick="saveBiz()">Save Profile</button>
 </div></div>
 
-<div class="mo" id="stock-edit-modal" style="display:none"><div class="md"><div class="mdg"></div>
+<div class="mo" id="stock-edit-modal" style="display:none"><div class="md" onclick="event.stopPropagation()"><div class="mdg"></div>
   <div class="mdt">Update Stock <button class="mdc" onclick="closeMod('stock-edit-modal')">✕</button></div>
   <input type="hidden" id="es-id"/>
   <div class="fi"><label>Item</label><input type="text" id="es-name" readonly style="opacity:.6"/></div>
@@ -853,7 +856,7 @@ window._authTimer = setTimeout(function(){
   <button class="btn" onclick="doUpdateStock()">Update</button>
 </div></div>
 
-<div class="mo" id="inv-modal" style="display:none"><div class="md"><div class="mdg"></div>
+<div class="mo" id="inv-modal" style="display:none"><div class="md" onclick="event.stopPropagation()"><div class="mdg"></div>
   <div class="mdt">New Invoice <button class="mdc" onclick="closeMod('inv-modal')">✕</button></div>
   <div class="fg"><div><label class="fl">Business Name</label><input type="text" id="iv-biz"/></div><div><label class="fl" id="iv-pan-lbl">PAN / Tax ID</label><input type="text" id="iv-pan"/></div></div>
   <div class="fg"><div><label class="fl">Buyer / Customer</label><input type="text" id="iv-buyer" placeholder="Customer name"/></div><div><label class="fl">Date</label><input type="date" id="iv-date"/></div></div>
@@ -874,7 +877,7 @@ window._authTimer = setTimeout(function(){
   </div>
 </div></div>
 
-<div class="mo" id="inv-view-modal" style="display:none"><div class="md"><div class="mdg"></div>
+<div class="mo" id="inv-view-modal" style="display:none"><div class="md" onclick="event.stopPropagation()"><div class="mdg"></div>
   <div class="mdt" id="ivm-t">Invoice <button class="mdc" onclick="closeMod('inv-view-modal')">✕</button></div>
   <div id="ivm-content"></div>
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:12px">
@@ -884,7 +887,7 @@ window._authTimer = setTimeout(function(){
   </div>
 </div></div>
 
-<div class="mo" id="ws-modal" style="display:none"><div class="md"><div class="mdg"></div>
+<div class="mo" id="ws-modal" style="display:none"><div class="md" onclick="event.stopPropagation()"><div class="mdg"></div>
   <div class="mdt">Partner Account <button class="mdc" onclick="closeMod('ws-modal')">✕</button></div>
   <p style="font-size:14px;color:var(--t2);line-height:1.65;margin-bottom:14px">Connect with a business partner so both of you manage the same entries, stock, and customers from separate logins.</p>
   <div id="ws-modal-content">
@@ -1081,7 +1084,13 @@ const bm=()=>BMODES[prefs.businessMode]||BMODES.retail;
 const fmt=n=>rg().sym+' '+Math.round(n).toLocaleString('en');
 const tod=()=>new Date().toISOString().split('T')[0];
 function toast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2300)}
-function closeMod(id){document.getElementById(id).style.display='none'}
+function closeMod(id){const el=document.getElementById(id);if(el)el.style.display='none';}
+// Close modal when clicking the dark backdrop (not the modal content itself)
+document.addEventListener('click',function(e){
+  if(e.target.classList.contains('mo')){
+    e.target.style.display='none';
+  }
+});
 
 // THEME
 function applyTheme(){
@@ -1283,7 +1292,7 @@ async function syncCloud(){
     if(cR.data)customers=cR.data;
     if(iR.data)invoices=iR.data;
     if(pR.data){const p=pR.data;prefs={...prefs,bizName:p.biz_name||prefs.bizName,pan:p.pan||'',vat:p.vat_num||'',bizType:p.biz_type||'retail',bizAddr:p.biz_addr||'',bizPhone:p.biz_phone||'',ownerName:p.owner_name||'',region:p.country||'NP',businessMode:p.business_mode||p.biz_type||'retail',workspaceId:p.workspace_id||null};}
-    saveLocal();setSyncStatus('ok');updateUI();checkAgreementStatus();
+    saveLocal();setSyncStatus('ok');updateUI();
   }catch(e){setSyncStatus('err')}
 }
 function setSyncStatus(s){const d=document.getElementById('sync-dot');if(!d)return;d.className='sync-dot'+(s==='sy'?' sy':s==='err'?' err':'');}
@@ -1914,7 +1923,7 @@ function renderDeposits(){
         </div>
         <div style="text-align:right">
           <div class="dep-type ${isSettled?'paid':'deposit'}">${isSettled?'✓ Settled':'Deposit'}</div>
-          ${d.signed?`<div class="dep-signed" style="margin-top:4px">✅ Signed by ${d.signedName||'client'}${d.signedDate?' on '+d.signedDate:''}</div>`:''}
+          ${d.signed?'<div class="dep-signed" style="margin-top:4px">✅ Agreement Signed</div>':''}
         </div>
       </div>
       <div class="dep-amounts">
@@ -1954,7 +1963,7 @@ function openDepDetail(id){
     ${dep.vehicle?`<div style="font-size:12px;color:var(--t2);margin-bottom:4px">🚗 ${dep.vehicle}${dep.rego?' ('+dep.rego+')':''}</div>`:''}
     ${dep.destination?`<div style="font-size:12px;color:var(--t2);margin-bottom:4px">📍 ${dep.destination}</div>`:''}
     ${dep.notes?`<div style="font-size:12px;color:var(--t3);margin-top:8px;font-style:italic">${dep.notes}</div>`:''}
-    ${dep.signed?renderSignedSection(dep):''}
+    ${dep.signed?`<div class="signed-badge" style="margin-top:10px">✅ Agreement signed ${dep.signedDate?'on '+dep.signedDate:''}</div>`:''}
   `;
   document.getElementById('ddm-actions').innerHTML=`
     <button class="dep-action-btn primary" onclick="openAgreementBuilder('${id}');closeMod('dep-detail-modal')">📄 View / Send Agreement</button>
@@ -2007,19 +2016,6 @@ function depEmail(id){
     ``,`Regards,`,prefs.bizName
   ].filter(Boolean).join('\n'));
   window.location.href=`mailto:${dep.email}?subject=${subject}&body=${body}`;
-}
-
-function renderSignedSection(dep){
-  let html='<div style="margin-top:12px">';
-  html+='<div class="signed-badge" style="margin-bottom:8px">✅ Signed by '+(dep.signedName||'client')+(dep.signedDate?' on '+dep.signedDate:'')+'</div>';
-  if(dep.signatureData&&dep.signatureData.startsWith('data:image')){
-    html+='<div style="background:var(--s2);border-radius:var(--r1);padding:12px;border:1px solid var(--bdr);display:inline-block">';
-    html+='<div style="font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Signature</div>';
-    html+='<img src="'+dep.signatureData+'" style="max-width:200px;max-height:60px;border-bottom:2px solid var(--t);display:block"/>';
-    html+='<div style="font-size:11px;color:var(--t2);margin-top:4px;font-weight:600">'+(dep.signedName||'')+'</div></div>';
-  }
-  html+='</div>';
-  return html;
 }
 
 function renderUdharo(){
@@ -2529,49 +2525,46 @@ This agreement was generated by Hisab-Kitab.`);
 }
 
 async function generateAndEmailAgreement(){
-  const clientEmail=document.getElementById('ag-client-name')?.value||'';
   const dep=currentDepositId?deposits.find(d=>d.id===currentDepositId):null;
-  const email=dep?.email||'';
-  if(!email){
-    toast('No email address for this client — add one in the deposit record');
-    return;
+  let clientEmail=dep?.email||'';
+  if(!clientEmail){
+    const entered=prompt('Enter customer email address to send the signing link:');
+    if(!entered||!entered.includes('@')){toast('A valid email is required');return;}
+    clientEmail=entered.trim();
+    if(dep){dep.email=clientEmail;saveLocal();}
   }
-  if(!user&&!isDemo){toast('Sign in to send agreements');return;}
-  if(isDemo){toast('Demo mode — sign in to send real agreements');return;}
-
+  if(isDemo){toast('Sign up free to send real e-signature requests');return;}
+  if(!user){toast('Please sign in to send agreements');return;}
   const btn=document.getElementById('send-agree-btn');
-  if(btn){btn.disabled=true;btn.textContent='Sending...';}
-
+  if(btn){btn.disabled=true;btn.textContent='⏳ Sending...';}
   const agreement={
-    userId:user?.id,
-    depositId:currentDepositId||null,
-    bizName:document.getElementById('ag-biz').value||prefs.bizName,
-    bizAddr:document.getElementById('ag-addr').value||prefs.bizAddr,
-    bizPhone:document.getElementById('ag-phone').value||prefs.bizPhone,
+    userId:user.id,depositId:currentDepositId||null,
+    bizName:document.getElementById('ag-biz').value||prefs.bizName||'',
+    bizAddr:document.getElementById('ag-addr').value||prefs.bizAddr||'',
+    bizPhone:document.getElementById('ag-phone').value||prefs.bizPhone||'',
     bizLogo:prefs.logoData||null,
     title:document.getElementById('ag-title').value||'Service Agreement',
     terms:agreementTerms,
     clientName:document.getElementById('ag-client-name').value||(dep?.customer||''),
-    clientEmail:email,
+    clientEmail,
     fields:{
-      service:document.getElementById('ag-service').value,
-      rego:document.getElementById('ag-rego').value,
-      start:document.getElementById('ag-start').value,
-      end:document.getElementById('ag-end').value,
-      pickup:document.getElementById('ag-pickup').value,
-      dropoff:document.getElementById('ag-dropoff').value,
-      depPaid:document.getElementById('ag-dep-paid').value,
-      security:document.getElementById('ag-security').value,
-      balance:document.getElementById('ag-balance').value,
-      clientName:document.getElementById('ag-client-name').value,
-      licence:document.getElementById('ag-licence').value,
-      clientPhone:document.getElementById('ag-client-phone').value,
-      clientAddr:document.getElementById('ag-client-addr').value,
-      ecName:document.getElementById('ag-ec-name').value,
-      ecPhone:document.getElementById('ag-ec-phone').value,
+      service:document.getElementById('ag-service').value||'',
+      rego:document.getElementById('ag-rego').value||'',
+      start:document.getElementById('ag-start').value||'',
+      end:document.getElementById('ag-end').value||'',
+      pickup:document.getElementById('ag-pickup').value||'',
+      dropoff:document.getElementById('ag-dropoff').value||'',
+      depPaid:document.getElementById('ag-dep-paid').value||'',
+      security:document.getElementById('ag-security').value||'',
+      balance:document.getElementById('ag-balance').value||'',
+      clientName:document.getElementById('ag-client-name').value||'',
+      licence:document.getElementById('ag-licence').value||'',
+      clientPhone:document.getElementById('ag-client-phone').value||'',
+      clientAddr:document.getElementById('ag-client-addr').value||'',
+      ecName:document.getElementById('ag-ec-name').value||'',
+      ecPhone:document.getElementById('ag-ec-phone').value||'',
     }
   };
-
   try{
     const res=await fetch('/api/agreement',{
       method:'POST',
@@ -2580,78 +2573,15 @@ async function generateAndEmailAgreement(){
     });
     const data=await res.json();
     if(data.error)throw new Error(data.error);
-
-    // Store signing URL on the deposit
     if(dep){dep.signingUrl=data.signingUrl;dep.agreementId=data.id;saveLocal();}
     saveAgreementToDeposit();
-    closeMod('agreement-modal');
-    closeMod('agree-preview-modal');
-
-    // Show result
-    if(data.emailSent){
-      showSigningResult(data.signingUrl,email,true);
-    }else{
-      // No Resend configured — show link to copy/share manually
-      showSigningResult(data.signingUrl,email,false);
-    }
+    closeMod('agreement-modal');closeMod('agree-preview-modal');
+    showSigningResult(data.signingUrl,clientEmail,data.emailSent);
     renderDeposits();
   }catch(e){
-    toast('Error sending: '+e.message);
-  }finally{
-    if(btn){btn.disabled=false;btn.textContent='📧 Send for Signature';}
+    toast('Error: '+e.message);
+    if(btn){btn.disabled=false;btn.textContent='📧 Send for E-Signature';}
   }
-}
-
-function showSigningResult(signingUrl,email,emailSent){
-  // Show a modal with the result and options to share the link
-  const existing=document.getElementById('signing-result-modal');
-  if(existing)existing.remove();
-  const modal=document.createElement('div');
-  modal.id='signing-result-modal';
-  modal.className='mo';
-  modal.innerHTML=`<div class="md" style="padding:24px 20px 36px">
-    <div class="mdg"></div>
-    <div style="text-align:center;margin-bottom:20px">
-      <div style="font-size:32px;margin-bottom:8px">${emailSent?'📧':'🔗'}</div>
-      <div style="font-size:17px;font-weight:900;color:var(--t);margin-bottom:6px">${emailSent?'Signing Request Sent!':'Agreement Created'}</div>
-      <div style="font-size:13px;color:var(--t2);line-height:1.6">${emailSent?`Sent to <strong>${email}</strong>. The client will receive an email with a link to review and sign.`:'Share this signing link with your client so they can review and sign the agreement.'}</div>
-    </div>
-    <div style="background:var(--s2);border-radius:var(--r1);border:1px solid var(--bdr);padding:12px 14px;margin-bottom:14px">
-      <div style="font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Signing Link</div>
-      <div style="font-size:12px;color:var(--b);word-break:break-all;font-weight:600">${signingUrl}</div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-      <button class="btn sec" onclick="navigator.clipboard.writeText('${signingUrl}').then(()=>toast('Link copied ✓'))">📋 Copy Link</button>
-      <button class="btn sec" onclick="window.open('https://wa.me/?text='+encodeURIComponent('Please sign the agreement here: ${signingUrl}'),'_blank')">📱 WhatsApp</button>
-    </div>
-    <button class="btn" onclick="window.open('${signingUrl}','_blank')">👁 Preview Signing Page</button>
-    <button class="btn sec" style="margin-top:8px" onclick="document.getElementById('signing-result-modal').remove()">Done</button>
-  </div>`;
-  document.body.appendChild(modal);
-}
-
-// Check for signed agreements and update deposit cards
-async function checkAgreementStatus(){
-  if(!user||isDemo)return;
-  try{
-    const res=await fetch('/api/agreement',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'list',userId:user.id,userToken:getToken()})});
-    const data=await res.json();
-    if(!data.agreements)return;
-    let updated=false;
-    data.agreements.forEach(agr=>{
-      if(agr.status==='signed'&&agr.deposit_id){
-        const dep=deposits.find(d=>d.id===agr.deposit_id);
-        if(dep&&!dep.signed){
-          dep.signed=true;
-          dep.signedDate=agr.signed_at?agr.signed_at.split('T')[0]:'';
-          dep.signedName=agr.signed_name||'';
-          dep.signatureData=agr.signature_data||'';
-          updated=true;
-        }
-      }
-    });
-    if(updated){saveLocal();renderDeposits();}
-  }catch(e){}
 }
 
 function shareAgreementWA(){
@@ -2676,6 +2606,33 @@ function shareAgreementWA(){
   const phone=dep?.phone||document.getElementById('ag-client-phone')?.value||'';
   const url='https://wa.me/'+(phone.replace(/[^0-9]/g,'')+'?text='+encodeURIComponent(lines.join('\n')));
   window.open(url,'_blank');
+}
+
+function showSigningResult(signingUrl,email,emailSent){
+  const existing=document.getElementById('signing-result-modal');
+  if(existing)existing.remove();
+  const modal=document.createElement('div');
+  modal.id='signing-result-modal';
+  modal.className='mo';
+  modal.innerHTML=`<div class="md" style="padding:24px 20px 36px" onclick="event.stopPropagation()">
+    <div class="mdg"></div>
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:32px;margin-bottom:8px">${emailSent?'📧':'🔗'}</div>
+      <div style="font-size:17px;font-weight:900;color:var(--t);margin-bottom:6px">${emailSent?'Signing Request Sent!':'Agreement Created'}</div>
+      <div style="font-size:13px;color:var(--t2);line-height:1.6">${emailSent?'Email sent to <strong>'+email+'</strong>.<br/>The client will get a link to review and sign.':'Share this link with your client to sign the agreement.'}</div>
+    </div>
+    <div style="background:var(--s2);border-radius:var(--r1);border:1px solid var(--bdr);padding:12px 14px;margin-bottom:14px">
+      <div style="font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Signing Link</div>
+      <div style="font-size:12px;color:var(--b);word-break:break-all;font-weight:600">${signingUrl}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <button class="btn sec" onclick="navigator.clipboard.writeText('${signingUrl}').then(()=>toast('Copied ✓'))">📋 Copy Link</button>
+      <button class="btn sec" onclick="window.open('https://wa.me/?text='+encodeURIComponent('Please sign the agreement: ${signingUrl}'),'_blank')">📱 WhatsApp</button>
+    </div>
+    <button class="btn sec" onclick="window.open('${signingUrl}','_blank')">👁 Preview Signing Page</button>
+    <button class="btn sec" style="margin-top:8px" onclick="document.getElementById('signing-result-modal').remove()">Close</button>
+  </div>`;
+  document.body.appendChild(modal);
 }
 
 // ═══ PWA ═══
@@ -2708,7 +2665,7 @@ if(!localStorage.getItem('hk_token')){
 </script>
 
 <!-- NEW DEPOSIT MODAL -->
-<div class="mo" id="new-dep-modal" style="display:none"><div class="md"><div class="mdg"></div>
+<div class="mo" id="new-dep-modal" style="display:none"><div class="md" onclick="event.stopPropagation()"><div class="mdg"></div>
   <div class="mdt" id="new-dep-title">New Deposit <button class="mdc" onclick="closeMod('new-dep-modal')">✕</button></div>
   <div class="fi"><label>Customer Name *</label><input type="text" id="nd-customer" placeholder="Full name"/></div>
   <div class="fi"><label>Customer Phone</label><input type="tel" id="nd-phone" placeholder="Phone number"/></div>
@@ -2742,7 +2699,7 @@ if(!localStorage.getItem('hk_token')){
 </div></div>
 
 <!-- UDHARO MODAL -->
-<div class="mo" id="new-udharo-modal" style="display:none"><div class="md"><div class="mdg"></div>
+<div class="mo" id="new-udharo-modal" style="display:none"><div class="md" onclick="event.stopPropagation()"><div class="mdg"></div>
   <div class="mdt">New Udharo / Credit <button class="mdc" onclick="closeMod('new-udharo-modal')">✕</button></div>
   <div class="fi"><label>Customer Name *</label><input type="text" id="ud-customer" placeholder="Full name"/></div>
   <div class="fi"><label>Phone</label><input type="tel" id="ud-phone" placeholder="Phone number"/></div>
@@ -2753,16 +2710,18 @@ if(!localStorage.getItem('hk_token')){
 </div></div>
 
 <!-- DEPOSIT DETAIL MODAL -->
-<div class="mo" id="dep-detail-modal" style="display:none"><div class="md"><div class="mdg"></div>
+<div class="mo" id="dep-detail-modal" style="display:none"><div class="md" onclick="event.stopPropagation()"><div class="mdg"></div>
   <div class="mdt" id="ddm-title">Deposit <button class="mdc" onclick="closeMod('dep-detail-modal')">✕</button></div>
   <div id="ddm-content"></div>
   <div id="ddm-actions" style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px"></div>
 </div></div>
 
 <!-- AGREEMENT BUILDER MODAL -->
-<div class="mo" id="agreement-modal" style="display:none"><div class="md"><div class="mdg"></div>
+<div class="mo" id="agreement-modal" style="display:none"><div class="md" onclick="event.stopPropagation()"><div class="mdg"></div>
   <div class="mdt">Customise Agreement <button class="mdc" onclick="closeMod('agreement-modal')">✕</button></div>
-  <p style="font-size:13px;color:var(--t2);margin-bottom:14px;line-height:1.6">Review and update the details before sending. The highlighted fields are pre-filled from the deposit — change anything before generating the PDF.</p>
+  <!-- SEND BUTTON AT TOP so it's always visible -->
+  <button class="btn" onclick="generateAndEmailAgreement()" id="send-agree-btn" style="margin-bottom:12px;background:linear-gradient(135deg,#00C896,#009970)">📧 Send for E-Signature</button>
+  <p style="font-size:13px;color:var(--t2);margin-bottom:14px;line-height:1.6">Review the details below, edit if needed, then tap Send above. The customer gets an email with a signing link.</p>
   <div class="fi"><label>Business / Company Name *</label><input type="text" id="ag-biz" placeholder="Your business name"/></div>
   <div class="fg"><div><label class="fl">Business Address</label><input type="text" id="ag-addr" placeholder="Full address"/></div><div><label class="fl">Business Phone</label><input type="tel" id="ag-phone" placeholder="Phone"/></div></div>
   <div class="fi"><label>Agreement Title</label><input type="text" id="ag-title" placeholder="e.g. Vehicle Hire Agreement, Tour Package Agreement"/></div>
@@ -2782,20 +2741,21 @@ if(!localStorage.getItem('hk_token')){
   <div class="fg"><div><label class="fl">Client Full Name</label><input type="text" id="ag-client-name"/></div><div><label class="fl">Licence / ID Number</label><input type="text" id="ag-licence"/></div></div>
   <div class="fg"><div><label class="fl">Phone</label><input type="text" id="ag-client-phone"/></div><div><label class="fl">Address</label><input type="text" id="ag-client-addr" placeholder="Client address"/></div></div>
   <div class="fg"><div><label class="fl">Emergency Contact Name</label><input type="text" id="ag-ec-name" placeholder="Emergency contact"/></div><div><label class="fl">Emergency Contact Phone</label><input type="text" id="ag-ec-phone"/></div></div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
     <button class="btn sec" onclick="previewAgreement()">👁 Preview</button>
-    <button class="btn" onclick="generateAgreementPDF()">📄 Download PDF</button>
+    <button class="btn sec" onclick="generateAgreementPDF()">📄 Download PDF</button>
   </div>
-  <button class="btn sec" style="margin-top:8px" onclick="shareAgreementWA()">📱 Send via WhatsApp</button>
+  <button class="btn sec" style="margin-top:6px" onclick="shareAgreementWA()">📱 Share via WhatsApp</button>
 </div></div>
 
 <!-- AGREEMENT PREVIEW MODAL -->
-<div class="mo" id="agree-preview-modal" style="display:none"><div class="md" style="padding:14px 14px 28px"><div class="mdg"></div>
+<div class="mo" id="agree-preview-modal" style="display:none"><div class="md" style="padding:14px 14px 28px" onclick="event.stopPropagation()"><div class="mdg"></div>
   <div class="mdt">Agreement Preview <button class="mdc" onclick="closeMod('agree-preview-modal')">✕</button></div>
   <div id="agree-preview-content"></div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+  <button class="btn" style="margin-top:12px" onclick="generateAndEmailAgreement()">📧 Send for E-Signature</button>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
     <button class="btn sec" onclick="shareAgreementWA()">📱 WhatsApp</button>
-    <button class="btn" onclick="generateAndEmailAgreement()">📧 Send for E-Signature</button>
+    <button class="btn sec" onclick="generateAgreementPDF()">📄 Download PDF</button>
   </div>
   <button class="btn sec" style="margin-top:8px;font-size:12px" onclick="markSigned()">✅ Mark as Signed</button>
 </div></div>
