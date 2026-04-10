@@ -1873,6 +1873,8 @@ function setDepTab(t){
 function renderDepositsPage(){
   renderDeposits();
   renderUdharo();
+  // Check for newly signed agreements when opening deposits tab
+  checkAgreementStatus();
   // Show travel fields if travel mode
   const tf=document.getElementById('nd-travel-fields');
   if(tf)tf.style.display=prefs.businessMode==='travel'||prefs.businessMode==='transport'||prefs.businessMode==='construction'?'block':'none';
@@ -2757,7 +2759,7 @@ async function checkAgreementStatus(){
   try{
     const res=await fetch('/api/agreement',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+getToken()},
       body:JSON.stringify({action:'list',userId:user.id,userToken:getToken()})
     });
     if(!res.ok)return;
@@ -2765,8 +2767,12 @@ async function checkAgreementStatus(){
     if(!data.agreements||!data.agreements.length)return;
     let changed=false;
     data.agreements.forEach(agr=>{
-      if(agr.status==='signed'&&agr.deposit_id){
-        const dep=deposits.find(d=>d.id===agr.deposit_id);
+      if(agr.status==='signed'){
+        // Match by agreementId stored on deposit OR by deposit_id on agreement
+        const dep=deposits.find(d=>
+          (agr.deposit_id&&d.id===agr.deposit_id)||
+          (d.agreementId&&d.agreementId===agr.id)
+        );
         if(dep&&!dep.signed){
           dep.signed=true;
           dep.signedDate=agr.signed_at?agr.signed_at.split('T')[0]:'';
@@ -2774,26 +2780,32 @@ async function checkAgreementStatus(){
           dep.signatureData=agr.signature_data||'';
           dep.agreementId=agr.id;
           changed=true;
+          console.log('Deposit updated as signed:',dep.id,dep.customer);
         }
       }
     });
     if(changed){
       saveLocal();
       renderDeposits();
-      // If deposit detail modal is open, refresh it
+      renderUdharo();
+      // Refresh deposit detail modal if open
       const ddm=document.getElementById('dep-detail-modal');
       if(ddm&&ddm.style.display!=='none'&&currentDepositId){
         openDepDetail(currentDepositId);
       }
-      toast('✅ Agreement signed! Deposit updated.');
+      toast('✅ Agreement signed — deposit updated!');
     }
-  }catch(e){}
+  }catch(e){console.error('checkAgreementStatus error:',e);}
 }
 
-// Poll every 30 seconds when app is open (to catch remote signatures)
-setInterval(()=>{if(user&&!isDemo&&document.visibilityState==='visible')checkAgreementStatus();},30000);
+// Poll every 20 seconds while app is visible
+setInterval(()=>{
+  if(user&&!isDemo&&document.visibilityState==='visible'){
+    checkAgreementStatus();
+  }
+},20000);
 
-// Also check when tab becomes visible again
+// Check immediately when tab becomes visible
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'&&user&&!isDemo){
     checkAgreementStatus();
