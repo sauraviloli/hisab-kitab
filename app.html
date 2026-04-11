@@ -1291,18 +1291,22 @@ async function syncCloud(){
   setSyncStatus('sy');
   try{
     const wsId=prefs.workspaceId;
-    const[eR,sR,cR,iR,pR]=await Promise.all([
+    const[eR,sR,cR,iR,pR,dR,uR]=await Promise.all([
       sb.from('entries').select('*').eq(wsId?'workspace_id':'user_id',wsId||user.id).order('created_at',{ascending:false}),
       sb.from('stock_items').select('*').eq(wsId?'workspace_id':'user_id',wsId||user.id),
       sb.from('customers').select('*').eq(wsId?'workspace_id':'user_id',wsId||user.id),
       sb.from('invoices').select('*').eq('user_id',user.id).order('created_at',{ascending:false}),
-      sb.from('profiles').select('*').eq('id',user.id).single()
+      sb.from('profiles').select('*').eq('id',user.id).single(),
+      sb.from('deposits').select('*').eq('user_id',user.id).order('created_at',{ascending:false}),
+      sb.from('udharos').select('*').eq('user_id',user.id).order('created_at',{ascending:false})
     ]);
     if(eR.data)entries=eR.data.map(e=>({...e,desc:e.description||e.desc}));
     if(sR.data)stocks=sR.data.map(s=>({...s,low:s.low_alert||0,sell:s.sell_price||0}));
     if(cR.data)customers=cR.data;
     if(iR.data)invoices=iR.data;
     if(pR.data){const p=pR.data;prefs={...prefs,bizName:p.biz_name||prefs.bizName,pan:p.pan||'',vat:p.vat_num||'',bizType:p.biz_type||'retail',bizAddr:p.biz_addr||'',bizPhone:p.biz_phone||'',ownerName:p.owner_name||'',region:p.country||'NP',businessMode:p.business_mode||p.biz_type||'retail',workspaceId:p.workspace_id||null};}
+    if(dR.data)deposits=dR.data.map(d=>({...d,depositAmt:d.deposit_amt||0,signedDate:d.signed_date||'',signedName:d.signed_name||'',signatureData:d.signature_data||'',agreementId:d.agreement_id||null,agreementData:d.agreement_data||null,signingUrl:d.signing_url||'',pickupTime:d.pickup_time||''}));
+    if(uR.data)udharos=uR.data.map(u=>({...u,duedate:u.due_date||''}));
     saveLocal();setSyncStatus('ok');updateUI();checkAgreementStatus();
   }catch(e){setSyncStatus('err')}
 }
@@ -1315,6 +1319,48 @@ async function updStockDB(id,qty){if(user&&!isDemo)await sb.from('stock_items').
 async function delStockDB(id){if(user&&!isDemo)await sb.from('stock_items').delete().eq('id',id);}
 async function pushCustomerDB(c){if(!user||isDemo)return;const wsId=prefs.workspaceId;const{data}=await sb.from('customers').insert({user_id:user.id,workspace_id:wsId||null,name:c.name,phone:c.phone||'',addr:c.addr||'',email:c.email||'',note:c.note||''}).select().single();if(data){c.id=data.id;saveLocal();}}
 async function delCustomerDB(id){if(user&&!isDemo)await sb.from('customers').delete().eq('id',id);}
+async function pushDepositDB(dep){
+  if(!user||isDemo)return;
+  const row={
+    id:dep.id,user_id:user.id,type:dep.type||'deposit',
+    customer:dep.customer,phone:dep.phone||'',email:dep.email||'',
+    service:dep.service,total:dep.total||0,deposit_amt:dep.depositAmt||0,
+    balance:dep.balance||0,due_date:dep.due||'',start_date:dep.start||'',
+    end_date:dep.end||'',notes:dep.notes||'',vehicle:dep.vehicle||'',
+    rego:dep.rego||'',pickup:dep.pickup||'',pickup_time:dep.pickupTime||'',
+    dropoff:dep.dropoff||'',destination:dep.destination||'',
+    security:dep.security||0,signed:dep.signed||false,
+    signed_date:dep.signedDate||'',signed_name:dep.signedName||'',
+    signature_data:dep.signatureData?dep.signatureData.substring(0,200000):'',
+    agreement_id:dep.agreementId||null,
+    signing_url:dep.signingUrl||'',
+    created_at:dep.created||new Date().toISOString()
+  };
+  await sb.from('deposits').upsert(row);
+}
+async function updateDepositDB(dep){
+  if(!user||isDemo)return;
+  await sb.from('deposits').upsert({
+    id:dep.id,user_id:user.id,signed:dep.signed||false,
+    signed_date:dep.signedDate||'',signed_name:dep.signedName||'',
+    signature_data:dep.signatureData?dep.signatureData.substring(0,200000):'',
+    agreement_id:dep.agreementId||null,signing_url:dep.signingUrl||'',
+    balance:dep.balance||0,deposit_amt:dep.depositAmt||0,total:dep.total||0,
+  });
+}
+async function deleteDepositDB(id){if(user&&!isDemo)await sb.from('deposits').delete().eq('id',id);}
+async function pushUdharoDB(ud){
+  if(!user||isDemo)return;
+  await sb.from('udharos').upsert({
+    id:ud.id,user_id:user.id,customer:ud.customer,phone:ud.phone||'',
+    item:ud.item,amount:ud.amount||0,paid:ud.paid||0,
+    date:ud.date||'',due_date:ud.duedate||'',notes:ud.notes||'',
+    created_at:ud.created||new Date().toISOString()
+  });
+}
+async function updateUdharoDB(ud){if(user&&!isDemo)await sb.from('udharos').upsert({id:ud.id,user_id:user.id,paid:ud.paid||0});}
+async function deleteUdharoDB(id){if(user&&!isDemo)await sb.from('udharos').delete().eq('id',id);}
+
 async function pushInvoiceDB(inv){if(!user||isDemo)return;await sb.from('invoices').upsert({id:inv.id,user_id:user.id,inv_number:inv.number,buyer:inv.buyer,amount:inv.total,date:inv.date,status:inv.status,data:JSON.stringify(inv)});}
 async function saveProfile(){if(!user||isDemo)return;await sb.from('profiles').upsert({id:user.id,email:user.email,biz_name:prefs.bizName,biz_type:prefs.bizType,biz_addr:prefs.bizAddr,biz_phone:prefs.bizPhone,pan:prefs.pan,vat_num:prefs.vat,owner_name:prefs.ownerName,country:prefs.region,currency:rg().curr,business_mode:prefs.businessMode,workspace_id:prefs.workspaceId||null});}
 function savePref(k,v){prefs[k]=v;saveLocal();if(!isDemo)saveProfile();}
@@ -1936,6 +1982,8 @@ function saveDeposit(openAgreement){
   const entry={id:'tmp-'+Date.now(),desc:`[DEPOSIT] ${service} — ${customer}`,amount:depositAmt,type:'in',category:'Deposit',date:dep.start||tod(),note:`Total: ${fmt(total)} | Balance: ${fmt(balance)} | Due: ${dep.due||'TBD'}`,isDeposit:true};
   entries.unshift(entry);saveLocal();updateSummary();renderEntries();
   closeMod('new-dep-modal');renderDeposits();toast('Deposit saved ✓');
+  if(!isDemo)pushDepositDB(dep);
+  if(!isDemo)pushEntry(entry);
   if(openAgreement)openAgreementBuilder(dep.id);
 }
 
@@ -1953,7 +2001,7 @@ function saveUdharo(){
     notes:document.getElementById('ud-notes').value.trim(),
     created:new Date().toISOString()
   };
-  udharos.unshift(ud);saveLocal();closeMod('new-udharo-modal');renderUdharo();toast('Udharo added ✓');
+  udharos.unshift(ud);saveLocal();closeMod('new-udharo-modal');renderUdharo();toast('Udharo added ✓');if(!isDemo)pushUdharoDB(ud);
 }
 
 function renderDeposits(){
@@ -1984,7 +2032,10 @@ function renderDeposits(){
       </div>
       ${d.due?`<div class="dep-bal ${isSettled?'settled':'outstanding'}">${isSettled?'✓ Fully Paid':'Balance due: '+d.due}</div>`:''}
       <div class="dep-actions" onclick="event.stopPropagation()">
-        <button class="dep-action-btn primary" onclick="openAgreementBuilder('${d.id}')">📄 Agreement</button>
+        ${d.signed
+          ?`<button class="dep-action-btn primary" onclick="openDepDetail('${d.id}')">📄 View Signed Agreement</button>`
+          :`<button class="dep-action-btn primary" onclick="openAgreementBuilder('${d.id}')">📄 Send Agreement</button>`
+        }
         ${d.phone?`<button class="dep-action-btn wa" onclick="depWhatsApp('${d.id}')">📱 WA</button>`:''}
         ${d.email?`<button class="dep-action-btn email" onclick="depEmail('${d.id}')">✉️ Email</button>`:''}
         ${!isSettled?`<button class="dep-action-btn" onclick="depMarkPaid('${d.id}')">Mark Paid</button>`:''}
@@ -2043,7 +2094,10 @@ function openDepDetail(id){
     ${signedHtml}
   `;
   document.getElementById('ddm-actions').innerHTML=`
-    <button class="dep-action-btn primary" onclick="openAgreementBuilder('${id}');closeMod('dep-detail-modal')">📄 ${dep.signed?'View / Resend Agreement':'Create Agreement'}</button>
+    ${dep.signed
+      ?`<button class="dep-action-btn primary" onclick="viewSignedAgreement('${id}');closeMod('dep-detail-modal')">📄 View Signed Agreement</button>`
+      :`<button class="dep-action-btn primary" onclick="openAgreementBuilder('${id}');closeMod('dep-detail-modal')">📄 Create / Send Agreement</button>`
+    }
     ${dep.phone?`<button class="dep-action-btn wa" onclick="depWhatsApp('${id}')">📱 WhatsApp</button>`:''}
     ${dep.email?`<button class="dep-action-btn email" onclick="depEmail('${id}')">✉️ Email</button>`:''}
     ${dep.balance>0?`<button class="dep-action-btn" onclick="depMarkPaid('${id}');closeMod('dep-detail-modal')">💰 Mark Fully Paid</button>`:''}
@@ -2076,8 +2130,13 @@ function viewSignedAgreement(id){
   }else{
     openAgreementBuilder(id);return;
   }
-  // Show preview with signed indicator
+  // Set globals so buildAgreementHTML includes signature
+  window._viewingSigned=true;
+  window._sigData=dep.signatureData||'';
+  window._signerName=dep.signedName||dep.customer||'';
+  window._signedDate=dep.signedDate||'';
   const html=buildAgreementHTML();
+  window._viewingSigned=false;
   document.getElementById('agree-preview-content').innerHTML=html;
   // Add signed overlay
   const sigBox=document.createElement('div');
@@ -2090,10 +2149,10 @@ function viewSignedAgreement(id){
   document.getElementById('agree-preview-modal').style.display='flex';
 }
 
-function depMarkPaid(id){const dep=deposits.find(d=>d.id===id);if(!dep)return;dep.balance=0;dep.depositAmt=dep.total||dep.depositAmt;saveLocal();renderDeposits();toast('Marked as fully paid ✓');}
-function depMarkSigned(id){const dep=deposits.find(d=>d.id===id);if(!dep)return;dep.signed=true;dep.signedDate=tod();saveLocal();renderDeposits();toast('Agreement marked as signed ✓');}
+function depMarkPaid(id){const dep=deposits.find(d=>d.id===id);if(!dep)return;dep.balance=0;dep.depositAmt=dep.total||dep.depositAmt;saveLocal();renderDeposits();toast('Marked as fully paid ✓');if(!isDemo)updateDepositDB(dep);}
+function depMarkSigned(id){const dep=deposits.find(d=>d.id===id);if(!dep)return;dep.signed=true;dep.signedDate=tod();saveLocal();renderDeposits();toast('Agreement marked as signed ✓');if(!isDemo)updateDepositDB(dep);}
 function markSigned(){if(currentDepositId)depMarkSigned(currentDepositId);closeMod('agree-preview-modal');}
-function depDelete(id){if(!confirm('Delete this deposit?'))return;deposits=deposits.filter(d=>d.id!==id);saveLocal();renderDeposits();toast('Deleted');}
+function depDelete(id){if(!confirm('Delete this deposit?'))return;deposits=deposits.filter(d=>d.id!==id);saveLocal();renderDeposits();toast('Deleted');if(!isDemo)deleteDepositDB(id);}
 
 function depWhatsApp(id){
   const dep=deposits.find(d=>d.id===id);if(!dep)return;
@@ -2175,12 +2234,13 @@ function udharoPartialPay(id){
   const amt=parseFloat(prompt(`${u.customer} — Record payment:\nBalance: ${fmt(u.amount-u.paid)}\nHow much did they pay?`));
   if(!amt||amt<=0)return;
   u.paid=Math.min(u.amount,u.paid+amt);
-  // Also add as cash in
-  entries.unshift({id:'tmp-'+Date.now(),desc:`[UDHARO PAYMENT] ${u.item} — ${u.customer}`,amount:amt,type:'in',category:'Sales',date:tod(),note:`Udharo payment, balance: ${fmt(u.amount-u.paid)}`});
+  const payEntry={id:'tmp-'+Date.now(),desc:`[UDHARO PAYMENT] ${u.item} — ${u.customer}`,amount:amt,type:'in',category:'Sales',date:tod(),note:`Udharo payment, balance: ${fmt(u.amount-u.paid)}`};
+  entries.unshift(payEntry);
   saveLocal();renderUdharo();updateSummary();renderEntries();toast(`Payment of ${fmt(amt)} recorded ✓`);
+  if(!isDemo){updateUdharoDB(u);pushEntry(payEntry);}
 }
 
-function udharoDelete(id){if(!confirm('Delete this udharo record?'))return;udharos=udharos.filter(u=>u.id!==id);saveLocal();renderUdharo();}
+function udharoDelete(id){if(!confirm('Delete this udharo record?'))return;udharos=udharos.filter(u=>u.id!==id);saveLocal();renderUdharo();if(!isDemo)deleteUdharoDB(id);}
 
 // ═══════════════════════════════════════════
 // AGREEMENT BUILDER
@@ -2337,10 +2397,12 @@ function buildAgreementHTML(){
         </div>
         ${(ecName||ecPhone)?`<div style="margin-top:8px"><div class="agree-booking-lbl">Emergency Contact</div><div class="agree-booking-val">${ecName}${ecPhone?' · '+ecPhone:''}</div></div>`:''}
       </div>
-      <div class="agree-sig-box">
+      <div class="agree-sig-box" id="agree-sig-boxes">
         <div>
-          <div class="agree-sig-line"></div>
-          <div class="agree-sig-lbl">Client Signature &amp; Date</div>
+          ${window._viewingSigned&&window._sigData&&window._sigData.startsWith('data:image')
+            ?`<img src="${window._sigData}" style="max-width:180px;max-height:60px;display:block;border-bottom:2px solid #0F1130;margin-bottom:4px"/><div class="agree-sig-lbl">${window._signerName||''} · ${window._signedDate||''}</div>`
+            :`<div class="agree-sig-line"></div><div class="agree-sig-lbl">Client Signature &amp; Date</div>`
+          }
         </div>
         <div>
           <div class="agree-sig-line"></div>
@@ -2768,7 +2830,6 @@ async function checkAgreementStatus(){
     let changed=false;
     data.agreements.forEach(agr=>{
       if(agr.status==='signed'){
-        // Match by agreementId stored on deposit OR by deposit_id on agreement
         const dep=deposits.find(d=>
           (agr.deposit_id&&d.id===agr.deposit_id)||
           (d.agreementId&&d.agreementId===agr.id)
@@ -2780,15 +2841,15 @@ async function checkAgreementStatus(){
           dep.signatureData=agr.signature_data||'';
           dep.agreementId=agr.id;
           changed=true;
-          console.log('Deposit updated as signed:',dep.id,dep.customer);
+          // Push signed status to deposits table
+          if(!isDemo)updateDepositDB(dep);
         }
       }
     });
     if(changed){
       saveLocal();
       renderDeposits();
-      renderUdharo();
-      // Refresh deposit detail modal if open
+      // Refresh detail modal if open
       const ddm=document.getElementById('dep-detail-modal');
       if(ddm&&ddm.style.display!=='none'&&currentDepositId){
         openDepDetail(currentDepositId);
