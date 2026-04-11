@@ -129,37 +129,4 @@ CREATE POLICY "owner_all" ON agreements FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "public_read_by_token" ON agreements FOR SELECT USING (true);
 CREATE POLICY "public_sign" ON agreements FOR UPDATE USING (true) WITH CHECK (true);
 
--- 9. Workspace tables
-CREATE TABLE IF NOT EXISTS workspaces (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  name text,
-  owner_id uuid REFERENCES auth.users ON DELETE CASCADE,
-  created_at timestamptz DEFAULT now()
-);
-ALTER TABLE workspaces ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "own_workspaces" ON workspaces;
-CREATE POLICY "own_workspaces" ON workspaces FOR ALL USING (auth.uid() = owner_id);
-
-CREATE TABLE IF NOT EXISTS workspace_members (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  workspace_id uuid REFERENCES workspaces ON DELETE CASCADE,
-  user_id uuid REFERENCES auth.users ON DELETE CASCADE,
-  role text DEFAULT 'member',
-  created_at timestamptz DEFAULT now(),
-  UNIQUE(workspace_id, user_id)
-);
-ALTER TABLE workspace_members ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "workspace_member_access" ON workspace_members;
-CREATE POLICY "workspace_member_access" ON workspace_members FOR ALL USING (auth.uid() = user_id);
-
-CREATE TABLE IF NOT EXISTS workspace_invites (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  workspace_id uuid REFERENCES workspaces ON DELETE CASCADE,
-  invite_code text UNIQUE NOT NULL,
-  created_at timestamptz DEFAULT now()
-);
-ALTER TABLE workspace_invites ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "invite_read" ON workspace_invites;
-CREATE POLICY "invite_read" ON workspace_invites FOR SELECT USING (true);
-DROP POLICY IF EXISTS "invite_write" ON workspace_invites;
-CREATE POLICY "invite_write" ON workspace_invites FOR INSERT WITH CHECK (true);
+-- 9. Workspace tables already exist — skipped
