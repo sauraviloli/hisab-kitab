@@ -46,7 +46,7 @@ html,body{height:100%;font-family:var(--f);background:var(--bg);color:var(--t);-
 .lt{font-size:13px;color:var(--t3);font-weight:600;letter-spacing:.04em}
 
 /* AUTH */
-#as{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto}
+#as{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto;z-index:800}
 .aw{width:100%;max-width:420px;padding:.5rem 0 2rem}
 .ah{text-align:center;margin-bottom:1.5rem}
 .ah-logo{width:68px;height:68px;border-radius:19px;overflow:hidden;margin:0 auto 12px;box-shadow:0 8px 28px rgba(0,200,150,0.4)}
@@ -1226,7 +1226,9 @@ async function doAuth(){
       const d=await res.json();if(d.error)throw new Error(d.error);
       if(d.access_token)localStorage.setItem('hk_token',d.access_token);
       if(d.refresh_token)localStorage.setItem('hk_refresh',d.refresh_token);
-      user=d.user;isDemo=false;showApp();
+      user=d.user;isDemo=false;
+      btn.disabled=false;btn.textContent='Sign In';
+      showApp();
     }catch(e){err.textContent=e.message;btn.disabled=false;btn.textContent='Sign In'}
     return;
   }
@@ -1257,7 +1259,9 @@ async function doAuth(){
       user=d.user;isDemo=false;
       prefs={...prefs,bizName,pan,vat:document.getElementById('su-vat').value.trim(),bizType,bizAddr:document.getElementById('su-addr').value.trim(),bizPhone:document.getElementById('su-ph').value.trim(),ownerName:document.getElementById('su-own').value.trim(),region:rCode,businessMode:bizType};
       lang=document.getElementById('su-lang').value;localStorage.setItem('hk_lang',lang);
-      saveLocal();showApp();
+      saveLocal();
+      btn.disabled=false;btn.textContent='Sign In';
+      showApp();
     }catch(e){err.textContent=e.message;btn.disabled=false;btn.textContent='Create Account'}
   }
 }
@@ -1282,8 +1286,29 @@ function doDemo(){
   ];
   showApp();
 }
-function showAuth(){document.getElementById('app').style.display='none';document.getElementById('bn').style.display='none';document.getElementById('demo-banner').style.display='none';document.getElementById('as').style.display='flex';}
-function doSignOut(){localStorage.removeItem('hk_token');localStorage.removeItem('hk_refresh');user=null;isDemo=false;entries=[];stocks=[];customers=[];invoices=[];deposits=[];udharos=[];aiHist=[];showAuth();}
+function showAuth(){
+  // Hide app and nav
+  document.getElementById('app').style.display='none';
+  document.getElementById('bn').style.display='none';
+  const db=document.getElementById('demo-banner');if(db)db.style.display='none';
+  // Close ALL open modals so nothing blocks the auth screen
+  document.querySelectorAll('.mo').forEach(m=>m.style.display='none');
+  // Show auth screen
+  document.getElementById('as').style.display='flex';
+  // Reset auth button - never leave it disabled
+  const btn=document.getElementById('a-btn');
+  if(btn){btn.disabled=false;btn.textContent=authTab==='login'?'Sign In':'Next →';}
+  const err=document.getElementById('a-err');if(err)err.textContent='';
+}
+function doSignOut(){
+  localStorage.removeItem('hk_token');
+  localStorage.removeItem('hk_refresh');
+  user=null;isDemo=false;
+  entries=[];stocks=[];customers=[];invoices=[];deposits=[];udharos=[];aiHist=[];
+  // Reset ALL buttons in the document that might be disabled
+  document.querySelectorAll('button[disabled]').forEach(b=>b.disabled=false);
+  showAuth();
+}
 
 // CLOUD SYNC
 async function syncCloud(){
@@ -2753,7 +2778,7 @@ async function generateAndEmailAgreement(){
     if(dep){dep.signingUrl=data.signingUrl;dep.agreementId=data.id;saveLocal();}
     saveAgreementToDeposit();
     closeMod('agreement-modal');closeMod('agree-preview-modal');
-    showSigningResult(data.signingUrl,clientEmail,data.emailSent);
+    showSigningResult(data.signingUrl,clientEmail,data.emailSent,data.emailError);
     renderDeposits();
   }catch(e){
     toast('Error: '+e.message);
@@ -2785,7 +2810,7 @@ function shareAgreementWA(){
   window.open(url,'_blank');
 }
 
-function showSigningResult(signingUrl,email,emailSent){
+function showSigningResult(signingUrl,email,emailSent,emailError){
   const existing=document.getElementById('signing-result-modal');
   if(existing)existing.remove();
   const modal=document.createElement('div');
@@ -2796,7 +2821,14 @@ function showSigningResult(signingUrl,email,emailSent){
     <div style="text-align:center;margin-bottom:20px">
       <div style="font-size:32px;margin-bottom:8px">${emailSent?'📧':'🔗'}</div>
       <div style="font-size:17px;font-weight:900;color:var(--t);margin-bottom:6px">${emailSent?'Signing Request Sent!':'Agreement Created'}</div>
-      <div style="font-size:13px;color:var(--t2);line-height:1.6">${emailSent?'Email sent to <strong>'+email+'</strong>.<br/>The client will get a link to review and sign.':'Share this link with your client to sign the agreement.'}</div>
+      <div style="font-size:13px;color:var(--t2);line-height:1.6">
+        ${emailSent
+          ?'Email sent to <strong>'+email+'</strong>. The client will get a link to review and sign.'
+          :emailError
+            ?'<span style="color:var(--r)">Email failed: '+emailError+'</span><br/>Share the link below manually.'
+            :'No email sent (RESEND_KEY not set or email missing). Share the link below.'
+        }
+      </div>
     </div>
     <div style="background:var(--s2);border-radius:var(--r1);border:1px solid var(--bdr);padding:12px 14px;margin-bottom:14px">
       <div style="font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Signing Link</div>
